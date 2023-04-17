@@ -196,3 +196,5 @@ def main():
      crawl(full_url)
      clean_html()
      create_vector_db()
+
+main()
