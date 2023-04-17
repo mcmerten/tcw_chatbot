@@ -39,7 +39,6 @@ qa = RetrievalQA.from_chain_type(llm=OpenAI(),
 
 def qa_query(query):
     result = qa({"query": query})
-    #print(result['result'])
     return result
 
 with gr.Blocks() as tcw_bot:
