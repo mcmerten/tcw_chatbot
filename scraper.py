@@ -14,6 +14,8 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.document_loaders import UnstructuredFileLoader
 from langchain.embeddings import OpenAIEmbeddings
 import chromadb
+from langchain.vectorstores import Chroma
+#from llama_index import download_loader
 
 
 # Load secrets to access API
