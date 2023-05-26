@@ -1,80 +1,71 @@
-#!/usr/bin/env python
-# coding: utf-8
-
 import os
 from dotenv import load_dotenv
-from langchain.embeddings import OpenAIEmbeddings
-from langchain.chains.qa_with_sources import load_qa_with_sources_chain
-from langchain.prompts import PromptTemplate#
-from langchain.vectorstores import Chroma
-from langchain.chains import RetrievalQAWithSourcesChain, RetrievalQA, ConversationalRetrievalChain
-from langchain import OpenAI
+import promptlayer
 from langchain.memory import ConversationBufferMemory
+from langchain.chains import ConversationalRetrievalChain
+from langchain.vectorstores import Chroma
+from langchain.prompts import PromptTemplate
+from langchain.chains.qa_with_sources import load_qa_with_sources_chain
+from langchain.embeddings import OpenAIEmbeddings
+from langchain.chat_models import PromptLayerChatOpenAI
 
-import gradio as gr
+class Chatbot:
+    def __init__(self):
+        os.environ["LANGCHAIN_HANDLER"] = "langchain"
+        os.environ["LANGCHAIN_SESSION"] = "chatbot"
 
-load_dotenv()
-os.environ['OPENAI_API_KEY'] = os.environ.get('OPENAI_API_TOKEN')
+        load_dotenv()
+        os.environ['OPENAI_API_KEY'] = os.environ.get('OPENAI_API_TOKEN')
+        promptlayer.api_key = os.environ.get("PL_API_TOKEN")
 
-embeddings = OpenAIEmbeddings()
-db = Chroma(persist_directory="chroma_db", embedding_function=embeddings, collection_name="tcw_chroma_collection")
+        self.embeddings = OpenAIEmbeddings()
+        self.db = Chroma(persist_directory="chroma_db_single_mode", embedding_function=self.embeddings,
+                        collection_name="tcw_chroma_collection")
 
-# Tune prompt to give it more the sense of a chatbot 
-prompt_template = """You are a chatbot used on a corporate website. Be helpful. Use the following pieces of context to answer the question at the end.
-If you don't know the answer, just say that you don't know, don't try to make up an answer.
+        _template = """Given the following conversation and a follow up question, rephrase the follow up question to be a standalone question.
+        Chat History:
+        {chat_history}
+        Follow Up Input: {question}
+        Standalone question:"""
+        self.CONDENSE_QUESTION_PROMPT = PromptTemplate.from_template(_template)
 
-{context}
+        template = """
+        # Assistant is a LLM trained to be an enthusiastic TCW website guide.
+        # Assistant is designed to assist with question related to the website of TCW (Transfer-Wissen-Centrum).
+        # Assistant will answer the question based on the context below and follows ALL the following rules when generating an answer:
+        #  - The primary goal is to provide the user with an answer that is relevant to the question.
+        #  - Do not make up any answers if the CONTEXT does not have relevant information.
+        #  - Answer the question in the language in which it was asked and with in an informal tone, in german use "Sie".
+        #  - IF the context does not have relevant information, ask a question back to the user that will help you answer the original question, or point to the TCW contact page "https://www.tcw.de/unternehmen/sonstiges/kontakt-170".
 
-Question: {question}
-Answer in German:"""
-PROMPT = PromptTemplate(
-    template=prompt_template, input_variables=["context", "question"]
-) 
+        Question: {question}
+        =========
+        {context}
+        =========
+        """
+        self.QA_PROMPT = PromptTemplate(template=template, input_variables=["question", "context"])
 
-chain_type_kwargs = {"prompt": PROMPT}
+        self.memory = ConversationBufferMemory(memory_key='chat_history',
+                                        return_messages=True, 
+                                        output_key='answer')
 
-#qa = RetrievalQA.from_chain_type(llm=OpenAI(),
-#                                 chain_type="stuff",
-#                                 retriever=db.as_retriever(),
-#                                 chain_type_kwargs=chain_type_kwargs, 
-#                                 return_source_documents=True)
 
-chat_history = []
-#memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
+        self.qa = ConversationalRetrievalChain.from_llm(
+            PromptLayerChatOpenAI(temperature=0, model_name="gpt-3.5-turbo", pl_tags=["local", "firstTemp"]),
+            retriever=self.db.as_retriever(search_type="similarity", search_kwargs={"k": 3}),    
+            verbose=True, 
+            return_source_documents=False,
+            qa_prompt=self.QA_PROMPT,
+            condense_question_prompt=self.CONDENSE_QUESTION_PROMPT,
+        )
 
-qa = ConversationalRetrievalChain.from_llm(llm = OpenAI(temperature=0),
-                                           retriever = db.as_retriever(),
-                                           qa_prompt=PROMPT,
-                                           chain_type="stuff", 
-                                           return_source_documents = False, 
-                                           #memory = memory, 
-                                           verbose = True)
+        self.chat_history = []
 
-def qa_query(query, chat_history):
-    chat_history = []
-    result = qa({"question": query, "chat_history" : chat_history})
-    return result
-
-with gr.Blocks() as tcw_bot:
-    chatbot = gr.Chatbot()
-    msg = gr.Textbox(placeholder="Enter question and press enter", show_label=False)
-    clear = gr.Button("Clear")
-
-    def user(user_message, history):
-        return "", history + [[user_message, None]]
+    def get_answer(self, query):
+        result = self.qa({"question": query, "chat_history": self.chat_history})
+        self.chat_history.append((query, result["answer"])) 
+        print(result)
+        return result["answer"]
     
-    def bot(history):
-        query = history[-1][0]
-        response = qa_query(query, chat_history)
-        print(response)
-        #chat_history.append((query, response["answer"]))
-        response_result = response["answer"]
-        history[-1][1] = response_result
-        return history
-
-    msg.submit(user, [msg, chatbot], [msg, chatbot], queue=False).then(
-        bot, chatbot, chatbot
-    )
-    clear.click(lambda: None, None, chatbot, queue=False)
-
-tcw_bot.launch(share=False)
+    def get_chat_history(self):
+        return self.chat_history
