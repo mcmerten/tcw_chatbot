@@ -19,7 +19,7 @@ class Chatbot:
         promptlayer.api_key = os.environ.get("PL_API_TOKEN")
 
         self.embeddings = OpenAIEmbeddings()
-        self.db = Chroma(persist_directory="chroma_db_single_mode", embedding_function=self.embeddings,
+        self.db = Chroma(persist_directory="chroma_db", embedding_function=self.embeddings,
                         collection_name="tcw_chroma_collection")
 
         _template = """Given the following conversation and a follow up question, rephrase the follow up question to be a standalone question.
