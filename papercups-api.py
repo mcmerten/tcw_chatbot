@@ -60,12 +60,14 @@ app.add_middleware(
 )
 
 # Pydantic model to handle request body
-class UserMessage(BaseModel):
-    message: str
+#class UserMessage(BaseModel):
+#    message: str
 
 class Item(BaseModel):
     event: str
     payload: object
+
+
 
 @app.post("/chat")
 async def webhook(item: Item):
@@ -87,3 +89,5 @@ async def webhook(item: Item):
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
 
+# run in terminal
+# uvicorn papercups-api:app --host "0.0.0.0" --port "8000"

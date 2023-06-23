@@ -1,8 +1,11 @@
 fastapi==0.95.2
 gradio==3.32.0
-langchain==0.0.180
+langchain==0.0.138
 promptlayer==0.1.80
 pydantic==1.10.5
 python-dotenv==1.0.0
 Requests==2.31.0
 uvicorn==0.22.0
+typing-inspect==0.8.0 
+typing_extensions==4.5.0
+chromadb==0.3.25
