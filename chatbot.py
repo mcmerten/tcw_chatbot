@@ -1,13 +1,13 @@
 import os
 from dotenv import load_dotenv
-import promptlayer
+#import promptlayer
 from langchain.memory import ConversationBufferMemory
 from langchain.chains import ConversationalRetrievalChain
 from langchain.vectorstores import Chroma
 from langchain.prompts import PromptTemplate
 from langchain.chains.qa_with_sources import load_qa_with_sources_chain
 from langchain.embeddings import OpenAIEmbeddings
-from langchain.chat_models import PromptLayerChatOpenAI
+#from langchain.chat_models import PromptLayerChatOpenAI
 from langchain.chat_models import ChatOpenAI
 from langchain.chains import LLMChain
 from langchain.llms import OpenAI
@@ -17,7 +17,7 @@ from langchain.chains.question_answering import load_qa_chain
 #os.environ["LANGCHAIN_SESSION"] = "chatbot"
 load_dotenv()
 os.environ['OPENAI_API_KEY'] = os.environ.get('OPENAI_API_TOKEN')
-promptlayer.api_key = os.environ.get("PL_API_TOKEN")
+#promptlayer.api_key = os.environ.get("PL_API_TOKEN")
    
 embeddings = OpenAIEmbeddings()
 db = Chroma(persist_directory="chroma_db", embedding_function=embeddings,
@@ -51,7 +51,7 @@ class Chatbot:
         """
 
         # Define Language Model
-        llm = ChatOpenAI(temperature=0, model_name="gpt-4")
+        llm = ChatOpenAI(temperature=0, model_name="gpt-3.5-turbo")
 
         # Define Question Generator
         QA_PROMPT = PromptTemplate(template=template, input_variables=[
