@@ -2,7 +2,6 @@
 # coding: utf-8
 from dotenv import load_dotenv
 import gradio as gr
-import os
 from chatbot import Chatbot
 
 chatbot = Chatbot()
