@@ -27,7 +27,7 @@ with gr.Blocks() as demo:
             lines=2,
         )
         submit = gr.Button(value="Submit", variant="primary").style(full_width=False)
-        clear = gr.Button("Clear", style="secondary").style(full_width=False)
+        clear = gr.Button("Clear").style(full_width=False)
 
     gr.Examples(
         examples = [

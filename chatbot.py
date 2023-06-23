@@ -26,6 +26,7 @@ db = Chroma(persist_directory="chroma_db", embedding_function=embeddings,
 class Chatbot:
     def __init__(self):
 
+        # Define Condense Question Prompt
         _template = """Given the following conversation and a follow up question, rephrase the follow up question to be a standalone question.
         Chat History:
         {chat_history}
@@ -33,6 +34,7 @@ class Chatbot:
         Standalone question:"""
         CONDENSE_QUESTION_PROMPT = PromptTemplate.from_template(_template)
 
+        # Define Question Answering Prompt
         template = """
         Assistant is a LLM trained to be an enthusiastic TCW website guide.
         Assistant is designed to assist with question related to the website of TCW (Transfer-Wissen-Centrum).
@@ -47,29 +49,24 @@ class Chatbot:
         {context}
         =========
         """
-        
-        llm = OpenAI(temperature=0, model_name="gpt-4")
 
+        # Define Language Model
+        llm = ChatOpenAI(temperature=0, model_name="gpt-4")
 
+        # Define Question Generator
         QA_PROMPT = PromptTemplate(template=template, input_variables=[
-                                   "question", "context"])
-
+                           "question", "context"])
         question_generator = LLMChain(llm=llm, prompt=CONDENSE_QUESTION_PROMPT, verbose=False)
 
+        # Define Document Retrieval Chain
         doc_chain = load_qa_chain(llm=llm, prompt=QA_PROMPT, chain_type="stuff", verbose=True)
 
+        # Define Memory
         memory = ConversationBufferMemory(memory_key='chat_history',
                                   return_messages=True,
                                   output_key='answer')
-        
 
-        #self.qa = ConversationalRetrievalChain.from_llm(
-        #    llm = llm,
-        #    condense_question_prompt=CONDENSE_QUESTION_PROMPT,
-        #    retriever=db.as_retriever(), 
-        #    verbose=True,
-        #    chain_type_kwargs={"prompt": QA_PROMPT}
-        #)
+        # Define Chatbot
         self.qa = ConversationalRetrievalChain(
             question_generator=question_generator,
             combine_docs_chain=doc_chain,
@@ -78,12 +75,6 @@ class Chatbot:
             verbose=False
         )
 
-        def get_chat_history(inputs) -> str:
-            res = []
-            for human, ai in inputs:
-                res.append(f"Human:{human}\nAI:{ai}")
-            return "\n".join(res)
-        
         self.chat_history = []
 
     def get_answer(self, query):
