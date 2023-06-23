@@ -5,12 +5,12 @@ from langchain.memory import ConversationBufferMemory
 from langchain.chains import ConversationalRetrievalChain
 from langchain.vectorstores import Chroma
 from langchain.prompts import PromptTemplate
-from langchain.chains.qa_with_sources import load_qa_with_sources_chain
+#from langchain.chains.qa_with_sources import load_qa_with_sources_chain
 from langchain.embeddings import OpenAIEmbeddings
 #from langchain.chat_models import PromptLayerChatOpenAI
 from langchain.chat_models import ChatOpenAI
 from langchain.chains import LLMChain
-from langchain.llms import OpenAI
+#from langchain.llms import OpenAI
 from langchain.chains.question_answering import load_qa_chain
 
 #os.environ["LANGCHAIN_HANDLER"] = "langchain"
