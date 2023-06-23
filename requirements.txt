@@ -1,7 +1,6 @@
-fastapi==0.95.2
+fastapi==0.98.0
 gradio==3.32.0
-langchain==0.0.138
-promptlayer==0.1.80
+langchain==0.0.209
 pydantic==1.10.5
 python-dotenv==1.0.0
 Requests==2.31.0
