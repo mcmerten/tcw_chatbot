@@ -35,7 +35,7 @@ class Papercups:
         """
         if not self.token:
             raise HTTPException(status_code=400, detail="Invalid token!")
-            print("send_message() : Invalid token!"
+            print("send_message() : Invalid token!")
 
         headers = {'Authorization': f'Bearer {self.token}'}
         result = {
