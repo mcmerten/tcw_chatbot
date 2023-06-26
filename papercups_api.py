@@ -35,6 +35,7 @@ class Papercups:
         """
         if not self.token:
             raise HTTPException(status_code=400, detail="Invalid token!")
+            print("send_message() : Invalid token!"
 
         headers = {'Authorization': f'Bearer {self.token}'}
         result = {
@@ -80,13 +81,16 @@ async def webhook(item: Item):
     Process incoming webhook events.
     """
     if item.event == "webhook:verify":
+        print("webhook verified")
         return item.payload
 
     elif item.event == "message:created" and item.payload["customer_id"]:
+        print(f'New message from {item.payload["customer_id"]}')
         papercups.send_message(item.payload)
         return {'ok': True}
 
     elif item.event == "message:created" and item.payload["user_id"]:
+        print(f'Answer sent from {item.payload["user_id"]}')
         return {'ok': True}
 
     elif item.event == "converation:created" and item.payload["user_id"]:
