@@ -6,9 +6,13 @@ from chatbot import Chatbot
 import requests
 import os
 import uvicorn
+import datetime
+import psycopg2
+from psycopg2 import sql
+import uuid
 
 load_dotenv()
-
+POSTGRES_PASSWORD = os.getenv('POSTGRES_PASSWORD')
 BASE_URL = os.getenv("PAPERCUPS_BASE_URL", "https://app.papercups.io")
 
 bot = Chatbot()
@@ -29,6 +33,45 @@ class Papercups:
         """
         return Papercups(token)
 
+    @staticmethod
+    def write_to_db(user_id, conversation_id, user_msg, bot_msg):
+        data_dict = {
+            "id": str(uuid.uuid4()),
+            "user_id": user_id,
+            "conversation_id": conversation_id,
+            "user_msg": user_msg,
+            "bot_msg": bot_msg,
+            "created_at": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        }
+
+        try:
+            # Establishing the connection
+            with psycopg2.connect(host="db-postgresql-fra1-47508-do-user-14280808-0.b.db.ondigitalocean.com",
+                                  port="25060",
+                                  database="tcw-dev-db",
+                                  user="doadmin",
+                                  password=POSTGRES_PASSWORD) as conn:
+                # Creating a cursor object using the cursor() method
+                with conn.cursor() as cur:
+                    # Formulating SQL query
+                    insert = sql.SQL("INSERT INTO chat_history ({}) VALUES ({})").format(
+                        sql.SQL(',').join(map(sql.Identifier, data_dict.keys())),
+                        sql.SQL(',').join(map(sql.Placeholder, data_dict.keys()))
+                    )
+
+                    # Executing the SQL command
+                    cur.execute(insert, data_dict)
+
+                    # Commit your changes in the database
+                    conn.commit()
+
+        except (Exception, psycopg2.DatabaseError) as error:
+            print("Error while executing SQL", error)
+        finally:
+            if conn is not None:
+                conn.close()
+                print("Database connection closed.")
+
     def send_message(self, params):
         """
         Send a message to Papercups.
@@ -43,6 +86,8 @@ class Papercups:
             "conversation_id": params["conversation_id"],
             "body": bot.get_answer(params["body"])
         }
+
+        self.write_to_db(user_id=params["customer_id"], conversation_id=params["conversation_id"], user_msg=["body"], bot_msg=result["body"])
 
         requests.post(f"{BASE_URL}/api/v1/messages", headers=headers, json={'message': result})
 
