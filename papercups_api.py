@@ -76,7 +76,6 @@ class Papercups:
         """
         Send a message to Papercups.
         """
-        print(f"token: {self.token}")
         if not self.token:
             print("send_message() : Invalid token!")
             raise HTTPException(status_code=400, detail="Invalid token!")
