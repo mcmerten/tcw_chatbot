@@ -1,21 +1,60 @@
+import datetime
+import logging
+import os
+import uuid
+
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-from chatbot import Chatbot
-import requests
-import os
-import uvicorn
-import datetime
-import psycopg2
 from psycopg2 import sql
-import uuid
+import psycopg2
+import requests
+from pydantic import BaseModel
+import uvicorn
+
+from chatbot import Chatbot
 
 load_dotenv()
-POSTGRES_PASSWORD = os.getenv('POSTGRES_PASSWORD')
+
 BASE_URL = os.getenv("PAPERCUPS_BASE_URL", "https://app.papercups.io")
 
 bot = Chatbot()
+
+
+# Setting up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+class DatabaseManager:
+    def __init__(self, host, port, db_name, user, password):
+        self.host = host
+        self.port = port
+        self.db_name = db_name
+        self.user = user
+        self.password = password
+
+    def write_to_db(self, data_dict):
+        try:
+            with psycopg2.connect(host=self.host, port=self.port, database=self.db_name, user=self.user, password=self.password) as conn:
+                with conn.cursor() as cur:
+                    insert = sql.SQL("INSERT INTO conversations ({}) VALUES ({})").format(
+                        sql.SQL(',').join(map(sql.Identifier, data_dict.keys())),
+                        sql.SQL(',').join(map(sql.Placeholder, data_dict.keys()))
+                    )
+                    cur.execute(insert, data_dict)
+                    conn.commit()
+
+        except (Exception, psycopg2.DatabaseError) as error:
+            logger.error("Error while executing SQL", error)
+
+
+db_manager = DatabaseManager(
+    host="db-postgresql-fra1-47508-do-user-14280808-0.b.db.ondigitalocean.com",
+    port="25060",
+    db_name="tcw-dev-db",
+    user="doadmin",
+    password=os.getenv('POSTGRES_PASSWORD')
+)
 
 
 class Papercups:
@@ -33,45 +72,6 @@ class Papercups:
         """
         return Papercups(token)
 
-    @staticmethod
-    def write_to_db(user_id, conversation_id, user_msg, bot_msg):
-        data_dict = {
-            "id": str(uuid.uuid4()),
-            "user_id": user_id,
-            "conversation_id": conversation_id,
-            "user_msg": user_msg,
-            "bot_msg": bot_msg,
-            "created_at": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        }
-
-        try:
-            # Establishing the connection
-            with psycopg2.connect(host="db-postgresql-fra1-47508-do-user-14280808-0.b.db.ondigitalocean.com",
-                                  port="25060",
-                                  database="tcw-dev-db",
-                                  user="doadmin",
-                                  password=POSTGRES_PASSWORD) as conn:
-                # Creating a cursor object using the cursor() method
-                with conn.cursor() as cur:
-                    # Formulating SQL query
-                    insert = sql.SQL("INSERT INTO conversations ({}) VALUES ({})").format(
-                        sql.SQL(',').join(map(sql.Identifier, data_dict.keys())),
-                        sql.SQL(',').join(map(sql.Placeholder, data_dict.keys()))
-                    )
-
-                    # Executing the SQL command
-                    cur.execute(insert, data_dict)
-
-                    # Commit your changes in the database
-                    conn.commit()
-
-        except (Exception, psycopg2.DatabaseError) as error:
-            print("Error while executing SQL", error)
-        finally:
-            if conn is not None:
-                conn.close()
-                print("Database connection closed.")
-
     def send_message(self, params):
         """
         Send a message to Papercups.
@@ -87,7 +87,16 @@ class Papercups:
             "body": bot.get_answer(params["body"])
         }
 
-        self.write_to_db(user_id=params["customer_id"], conversation_id=params["conversation_id"], user_msg=["body"], bot_msg=result["body"])
+        data_dict = {
+            "id": str(uuid.uuid4()),
+            "user_id": params["customer_id"],
+            "conversation_id": params["conversation_id"],
+            "user_msg": params["body"],
+            "bot_msg": result["body"],
+            "created_at": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        }
+
+        db_manager.write_to_db(data_dict)
 
         requests.post(f"{BASE_URL}/api/v1/messages", headers=headers, json={'message': result})
 
