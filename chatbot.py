@@ -70,7 +70,7 @@ class Chatbot:
             llm=self.llm,
             prompt=self.qa_prompt,
             chain_type="stuff",
-            verbose=True
+            verbose=False
         )
         memory = ConversationBufferMemory(
             memory_key='chat_history',

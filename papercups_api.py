@@ -54,7 +54,7 @@ class Papercups:
                 # Creating a cursor object using the cursor() method
                 with conn.cursor() as cur:
                     # Formulating SQL query
-                    insert = sql.SQL("INSERT INTO chat_history ({}) VALUES ({})").format(
+                    insert = sql.SQL("INSERT INTO conversations ({}) VALUES ({})").format(
                         sql.SQL(',').join(map(sql.Identifier, data_dict.keys())),
                         sql.SQL(',').join(map(sql.Placeholder, data_dict.keys()))
                     )
