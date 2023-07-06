@@ -4,14 +4,15 @@ import openai
 from sqlalchemy import Column, String, DateTime, create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 from dotenv import load_dotenv
-
+from utils import DatabaseManager
+import uuid
 
 load_dotenv()
-POSTGRES_PASSWORD = os.getenv('POSTGRES_PASSWORD')
 openai.api_key = os.getenv('OPENAI_API_KEY')
 
 Base = declarative_base()
-
+db_manager = DatabaseManager()
+db_session = db_manager.create_session()
 
 class Conversation(Base):
     __tablename__ = 'conversations'
@@ -23,43 +24,46 @@ class Conversation(Base):
     created_at = Column(DateTime)
 
 
-ENGINE = create_engine(f'postgresql://doadmin:{POSTGRES_PASSWORD}@db-postgresql-fra1-47508-do-user-14280808-0.b.db.ondigitalocean.com:25060/tcw-dev-db?sslmode=require')
-Session = sessionmaker(bind=ENGINE)
-session = Session()
-
-
 def list_conversations(session):
-    """
-    Fetches all conversations from the database and returns them as a list of Conversation objects.
-    """
-    conversation_ids = session.query(Conversation.conversation_id).distinct().all()
+    # return conversation_ids and user_ids
 
-    return conversation_ids
+    conversations = session.query(Conversation.conversation_id, Conversation.user_id).distinct().all()
+    return conversations
 
 
-def fetch_conversation_history(session, conversation_id):
+def fetch_conversation(session, conversation_id):
+
+    # check if conversation_id is in the list returned by list_conversations(db_session), throw exception if not
+    #if conversation_id not in list_conversations(db_session)[0]:
+    #    print("Conversation ID not found!")
+
     conversation = session.query(Conversation).filter_by(conversation_id=conversation_id).order_by(Conversation.created_at).all()
 
-    conversation_history = ""
+    conversation_str = ""
     for msg in conversation:
         if msg.user_msg:
-            conversation_history += f"user: {msg.user_msg}\n"
+            conversation_str += f"user: {msg.user_msg}\n"
         if msg.bot_msg:
-            conversation_history += f"assistant: {msg.bot_msg}\n"
+            conversation_str += f"assistant: {msg.bot_msg}\n"
 
-    return conversation_history
+    user_conversation = {
+         "user_id": conversation[0].user_id,
+         "conversation_id": conversation_id,
+         "conversation_str": conversation_str
+    }
+
+    return user_conversation
 
 
-def extract_content(data):
-    content_string = data["choices"][0]["message"]["content"]
+def extract_content(response):
+    content_string = response["choices"][0]["message"]["content"]
     content_dict = json.loads(content_string)
-    content_dict = json.dumps(content_dict, indent=4, sort_keys=False)
+    #content_dict = json.dumps(content_dict, indent=4, sort_keys=False)
 
     return content_dict
 
 
-def create_response():
-    conversation_history = fetch_conversation_history(session, 'e7e324a9-a93b-4846-9c44-27b03e653375')
+def create_response(conversation):
 
     assistant_input = """You are a an assistant for extracting customer lead information from a chat conversation. 
                          You will adhere to ALL of the following rules
@@ -85,10 +89,23 @@ def create_response():
         model="gpt-4",
         messages=[
             {"role": "system", "content": assistant_input},
-            {"role": "user", "content": conversation_history},
+            {"role": "user", "content": conversation["conversation_str"]},
         ]
     )
-    print(extract_content(response))
+
+    conversation_summary = extract_content(response)
+
+    metadata = {'id': str(uuid.uuid4()),
+                'user_id': conversation['user_id'],
+                'conversation_id': conversation['conversation_id']}
+
+    summary = metadata | conversation_summary
+    return summary
 
 
-create_response()
+if __name__ == "__main__":
+    fetched_conversation = fetch_conversation(db_session, "4e3af3cd-bb23-458c-8d00-af2d745d991d")
+    gpt_response = create_response(fetched_conversation)
+    db_manager.write_to_db(table_name="summary", data_dict=gpt_response)
+
+

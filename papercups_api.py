@@ -1,60 +1,24 @@
 import datetime
-import logging
 import os
 import uuid
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from psycopg2 import sql
-import psycopg2
+
 import requests
 from pydantic import BaseModel
 import uvicorn
 
 from chatbot import Chatbot
+from utils import DatabaseManager
 
 load_dotenv()
 
 BASE_URL = os.getenv("PAPERCUPS_BASE_URL", "https://app.papercups.io")
 
 bot = Chatbot()
-
-
-# Setting up logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-class DatabaseManager:
-    def __init__(self, host, port, db_name, user, password):
-        self.host = host
-        self.port = port
-        self.db_name = db_name
-        self.user = user
-        self.password = password
-
-    def write_to_db(self, data_dict):
-        try:
-            with psycopg2.connect(host=self.host, port=self.port, database=self.db_name, user=self.user, password=self.password) as conn:
-                with conn.cursor() as cur:
-                    insert = sql.SQL("INSERT INTO conversations ({}) VALUES ({})").format(
-                        sql.SQL(',').join(map(sql.Identifier, data_dict.keys())),
-                        sql.SQL(',').join(map(sql.Placeholder, data_dict.keys()))
-                    )
-                    cur.execute(insert, data_dict)
-                    conn.commit()
-
-        except (Exception, psycopg2.DatabaseError) as error:
-            logger.error("Error while executing SQL", error)
-
-
-db_manager = DatabaseManager(
-    host="db-postgresql-fra1-47508-do-user-14280808-0.b.db.ondigitalocean.com",
-    port="25060",
-    db_name="tcw-dev-db",
-    user="doadmin",
-    password=os.getenv('POSTGRES_PASSWORD')
-)
+db_manager = DatabaseManager()
 
 
 class Papercups:
@@ -95,7 +59,7 @@ class Papercups:
             "created_at": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         }
 
-        db_manager.write_to_db(data_dict)
+        db_manager.write_to_db(table_name="conversations", data_dict=data_dict)
 
         requests.post(f"{BASE_URL}/api/v1/messages", headers=headers, json={'message': result})
 
