@@ -11,7 +11,7 @@ from pydantic import BaseModel
 import uvicorn
 
 from chatbot import Chatbot
-from utils import DatabaseManager
+from utils import DatabaseManager, Conversation
 
 load_dotenv()
 
@@ -59,7 +59,8 @@ class Papercups:
             "created_at": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         }
 
-        db_manager.write_to_db(table_name="conversations", data_dict=data_dict)
+        conversation_data = Conversation(**data_dict)
+        db_manager.write_to_db(conversation_data)
 
         requests.post(f"{BASE_URL}/api/v1/messages", headers=headers, json={'message': result})
 
