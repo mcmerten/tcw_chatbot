@@ -1,8 +1,0 @@
-.env
-website
-scraper
-conversations.py
-chroma_db
-gradio_chatbot.py
-scraper.ipynb
-
