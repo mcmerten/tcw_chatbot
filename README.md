@@ -16,7 +16,7 @@ The project, primarily developed in Python, uses:
 - S3 Storage
 - Pinecone Vector DB
 
-<img src="/Users/merten/Documents/Master/Masterarbeit/landscape_light2.jpg" alt="drawing" width="1000"/>
+<img src="application.jpg" alt="drawing" width="1000"/>
 
 
 
