@@ -25,9 +25,8 @@ class Conversation(Base):
 
 class Summary(Base):
     __tablename__ = 'summary'
-    id = Column(String(64), primary_key=True)
+    conversation_id = Column(String(64), primary_key=True)
     user_id = Column(String(64))
-    conversation_id = Column(String(64))
     created_at = Column(DateTime)
     name = Column(String(128))
     email = Column(String(128))
@@ -59,7 +58,7 @@ class DatabaseManager:
     def write_to_db(self, obj):
         session = self.create_session()
         try:
-            session.add(obj)
+            session.merge(obj)
             session.commit()
             logger.info("Data was inserted")
         except exc.SQLAlchemyError as error:

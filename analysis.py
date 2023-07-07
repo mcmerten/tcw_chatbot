@@ -50,6 +50,7 @@ def fetch_conversation(session, conversation_id):
 def extract_content(response):
     content_string = response["choices"][0]["message"]["content"]
     content_dict = json.loads(content_string)
+    content_dict = {k: None if v == "None" else v for k, v in content_dict.items()}
 
     return content_dict
 
@@ -86,9 +87,8 @@ def create_response(conversation):
 
     conversation_summary = extract_content(response)
 
-    metadata = {'id': str(uuid.uuid4()),
+    metadata = {'conversation_id': conversation['conversation_id'],
                 'user_id': conversation['user_id'],
-                'conversation_id': conversation['conversation_id'],
                 'created_at': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
 
     summary = Summary(**(metadata | conversation_summary))
