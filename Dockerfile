@@ -1,11 +1,13 @@
 FROM python:3.10.5
 
-WORKDIR /code
+WORKDIR /app
 
-COPY requirements.txt /code/requirements.txt
+ADD ./app /app
 
-RUN pip install --upgrade -r /code/requirements.txt
+COPY requirements.txt /app/requirements.txt
 
-COPY . /code/
+RUN pip install --upgrade -r /app/requirements.txt
+
+COPY . /app/
 
 CMD ["uvicorn", "papercups_api:app", "--host", "0.0.0.0", "--port", "8080"]

@@ -10,8 +10,8 @@ import requests
 from pydantic import BaseModel
 import uvicorn
 
-from chatbot import Chatbot
-from utils import DatabaseManager, Conversation
+from app.chatbot import Chatbot
+from app.utils import DatabaseManager, Conversation
 
 load_dotenv()
 
