@@ -2,7 +2,7 @@ import logging
 from app.database.models import Base
 from sqlalchemy import create_engine, exc
 from sqlalchemy.orm import sessionmaker
-from app.config import settings, db_settings
+from app.config import settings
 
 # Setting up logging
 logging.basicConfig(level=logging.INFO)
@@ -11,11 +11,13 @@ logger = logging.getLogger(__name__)
 class DatabaseManager:
 
     def __init__(self,
-                 host=db_settings.host,
-                 port=db_settings.port,
-                 db_name=db_settings.db_name,
-                 user=db_settings.user,
-                 password=db_settings.POSTGRES_PASSWORD):
+                 host=settings.POSTGRES_HOST,
+                 port=settings.POSTGRES_PORT,
+                 db_name=settings.POSTGRES_NAME,
+                 user=settings.POSTGRES_USER,
+                 password=settings.POSTGRES_PASSWORD):
+
+        print(f'postgresql://{user}:{password}@{host}:{port}/{db_name}')
 
         self.engine = create_engine(f'postgresql://{user}:{password}@{host}:{port}/{db_name}')
 
@@ -35,3 +37,6 @@ class DatabaseManager:
             logger.error("Error while executing SQL", error)
         finally:
             session.close()
+
+
+
