@@ -92,11 +92,8 @@ def create_response(conversation):
     return summary
 
 
-test = list_conversations(db_session, all_conversations=True)
-print(test)
-
-#if __name__ == "__main__":
-#    for convo in list_conversations(db_session, all_conversations=True):
-#        fetched_conversation = fetch_conversation(db_session, convo[0])
-#        gpt_response = create_response(fetched_conversation)
-#        db_manager.write_to_db(gpt_response)
+if __name__ == "__main__":
+    for convo in list_conversations(db_session, all_conversations=True):
+        fetched_conversation = fetch_conversation(db_session, convo[0])
+        gpt_response = create_response(fetched_conversation)
+        db_manager.write_to_db(gpt_response)
