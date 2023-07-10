@@ -1,21 +1,16 @@
 import datetime
-import os
 import uuid
 
-from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 import requests
 from pydantic import BaseModel
-import uvicorn
 
 from app.chatbot import Chatbot
-from app.utils import DatabaseManager, Conversation
+from app.database import DatabaseManager, Conversation
+from app.config import settings
 
-load_dotenv()
-
-BASE_URL = os.getenv("PAPERCUPS_BASE_URL", "https://app.papercups.io")
 
 bot = Chatbot()
 db_manager = DatabaseManager()
@@ -62,7 +57,7 @@ class Papercups:
         conversation_data = Conversation(**data_dict)
         db_manager.write_to_db(conversation_data)
 
-        requests.post(f"{BASE_URL}/api/v1/messages", headers=headers, json={'message': result})
+        requests.post(f"{settings.BASE_URL}/api/v1/messages", headers=headers, json={'message': result})
 
     def fetch_conversation(self, conversation_id):
         """
@@ -72,10 +67,10 @@ class Papercups:
             raise HTTPException(status_code=400, detail="Invalid token!")
 
         headers = {'Authorization': f'Bearer {self.token}'}
-        requests.get(f"{BASE_URL}/api/v1/conversations/{conversation_id}", headers=headers)
+        requests.get(f"{settings.BASE_URL}/api/v1/conversations/{conversation_id}", headers=headers)
 
 
-papercups = Papercups.init(os.environ.get("PAPERCUPS_API_KEY"))
+papercups = Papercups.init(settings.PAPERCUPS_API_KEY)
 app = FastAPI()
 
 origins = ["http://localhost:3000"]
@@ -93,6 +88,9 @@ class Item(BaseModel):
     event: str
     payload: object
 
+@app.get("/")
+async def root():
+    return {"message": "TCW Chatbot API is online"}
 
 @app.post("/chat")
 async def webhook(item: Item):
@@ -118,6 +116,3 @@ async def webhook(item: Item):
     else:
         raise HTTPException(status_code=400, detail="Invalid event or payload")
 
-
-if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)

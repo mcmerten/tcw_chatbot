@@ -1,13 +1,10 @@
-import os
 import json
 import openai
-from dotenv import load_dotenv
-from utils import DatabaseManager, Conversation, Summary
-import uuid
+from app.database import DatabaseManager, Conversation, Summary
+from app.config import settings
 import datetime
 
-load_dotenv()
-openai.api_key = os.getenv('OPENAI_API_KEY')
+openai.api_key = settings.OPENAI_API_KEY
 
 db_manager = DatabaseManager()
 db_session = db_manager.create_session()

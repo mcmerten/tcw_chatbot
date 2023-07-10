@@ -1,7 +1,6 @@
-from dotenv import load_dotenv
+import openai
 from langchain.memory import ConversationBufferMemory
 from langchain.chains import ConversationalRetrievalChain
-from langchain.vectorstores import Chroma
 from langchain.prompts import PromptTemplate
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.chat_models import ChatOpenAI
@@ -9,12 +8,9 @@ from langchain.chains import LLMChain
 from langchain.chains.question_answering import load_qa_chain
 from langchain.vectorstores import Pinecone
 import pinecone
-import os
+from app.config import settings
 
-
-load_dotenv()
-GPT_MODEL = os.environ.get("GPT_MODEL")
-
+openai.api_key = settings.OPENAI_API_KEY
 # Connect to pinecone vector store
 pinecone.init(environment="us-west1-gcp-free")
 text_field = "text"
@@ -26,7 +22,7 @@ db = Pinecone(index, embeddings.embed_query, text_field)
 class Chatbot:
     def __init__(self):
         self._define_prompts()
-        self.llm = ChatOpenAI(temperature=0, model_name=GPT_MODEL)
+        self.llm = ChatOpenAI(temperature=0, model_name=settings.GPT_MODEL)
         self.define_chains()
         self.chat_history = []
 
@@ -103,7 +99,6 @@ class Chatbot:
         result = self.qa({"question": query, "chat_history": self.chat_history})
         self.chat_history.append((query, result["answer"]))
         return result["answer"]
-
 
     def get_chat_history(self):
         return self.chat_history

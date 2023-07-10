@@ -5,16 +5,11 @@ from urllib.parse import urlparse
 from collections import deque
 from html.parser import HTMLParser
 import urllib.request
-from dotenv import load_dotenv
 import boto3
 import botocore.session
 import datetime
+from app.config import settings
 
-load_dotenv()
-
-# Environment variables
-AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
-AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
 
 # Constants
 HTTP_URL_PATTERN = r'^http[s]*://.+'
@@ -35,8 +30,8 @@ client = session.client(
     endpoint_url='https://fra1.digitaloceanspaces.com',
     config=botocore.config.Config(s3={'addressing_style': 'virtual'}),
     region_name='fra1',
-    aws_access_key_id=AWS_ACCESS_KEY_ID,
-    aws_secret_access_key=AWS_SECRET_ACCESS_KEY
+    aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+    aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY
 )
 
 

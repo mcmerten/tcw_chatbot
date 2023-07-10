@@ -5,22 +5,14 @@ import boto3
 import botocore.session
 import pathlib
 from bs4 import BeautifulSoup
-from dotenv import load_dotenv
 from tqdm import tqdm
 from uuid import uuid4
 import pinecone
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.document_loaders import UnstructuredFileLoader
 from langchain.embeddings import OpenAIEmbeddings
+from app.config import settings, db_settings
 
-# Load environment variables
-load_dotenv()
-
-
-# Environment variables
-AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
-AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
-PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
 
 # Constants
 DOMAIN = "tcw.de"
@@ -39,8 +31,8 @@ s3_client = session.client('s3',
                            endpoint_url='https://fra1.digitaloceanspaces.com',
                            config=botocore.config.Config(s3={'addressing_style': 'virtual'}),
                            region_name='fra1',
-                           aws_access_key_id=AWS_ACCESS_KEY_ID,
-                           aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
+                           aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+                           aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY)
 
 # Create a /tmp directory within the current directory
 def create_temp_dir(dir_name=TMP_DIR):
@@ -107,7 +99,7 @@ def get_filtered_documents_from_s3(dir_name=TMP_DIR):
 
 # Create vector database
 def create_vector_db(documents, index_name=PINECONE_INDEX_NAME, vector_dimension=VECTOR_DIMENSION, batch_limit=BATCH_LIMIT):
-    pinecone.init(environment=PINECONE_ENVIRONMENT, api_key=PINECONE_API_KEY)
+    pinecone.init(environment=PINECONE_ENVIRONMENT, api_key=settings.PINECONE_API_KEY)
     embeddings = OpenAIEmbeddings()
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=512, chunk_overlap=20)
 
