@@ -1,12 +1,9 @@
-import logging
-from app.database.models import Base
 from sqlalchemy import create_engine, exc
 from sqlalchemy.orm import sessionmaker
 from app.config import settings
+from app.core.logger import get_logger
 
-# Setting up logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 class DatabaseManager:
 
@@ -16,8 +13,6 @@ class DatabaseManager:
                  db_name=settings.POSTGRES_NAME,
                  user=settings.POSTGRES_USER,
                  password=settings.POSTGRES_PASSWORD):
-
-        print(f'postgresql://{user}:{password}@{host}:{port}/{db_name}')
 
         self.engine = create_engine(f'postgresql://{user}:{password}@{host}:{port}/{db_name}')
 

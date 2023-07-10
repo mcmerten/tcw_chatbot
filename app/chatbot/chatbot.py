@@ -9,6 +9,9 @@ from langchain.chains.question_answering import load_qa_chain
 from langchain.vectorstores import Pinecone
 import pinecone
 from app.config import settings
+from app.core.logger import get_logger
+
+logger = get_logger(__name__)
 
 openai.api_key = settings.OPENAI_API_KEY
 # Connect to pinecone vector store

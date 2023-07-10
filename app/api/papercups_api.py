@@ -10,8 +10,9 @@ from pydantic import BaseModel
 from app.chatbot import Chatbot
 from app.database import DatabaseManager, Conversation
 from app.config import settings
+from app.core.logger import get_logger
 
-
+logger = get_logger(__name__)
 bot = Chatbot()
 db_manager = DatabaseManager()
 
@@ -36,7 +37,7 @@ class Papercups:
         Send a message to Papercups.
         """
         if not self.token:
-            print("send_message() : Invalid token!")
+            logger.error("send_message() : Invalid token!")
             raise HTTPException(status_code=400, detail="Invalid token!")
 
         headers = {'Authorization': f'Bearer {self.token}'}
@@ -98,16 +99,16 @@ async def webhook(item: Item):
     Process incoming webhook events.
     """
     if item.event == "webhook:verify":
-        print("webhook verified")
+        logger.info("Papercups webhook verified")
         return item.payload
 
     elif item.event == "message:created" and item.payload["customer_id"]:
-        print(f'New message from {item.payload["customer_id"]}')
+        logger.info(f'New message from {item.payload["customer_id"]}')
         papercups.send_message(item.payload)
         return {'ok': True}
 
     elif item.event == "message:created" and item.payload["user_id"]:
-        print(f'Answer sent from {item.payload["user_id"]}')
+        logger.info(f'Answer sent to {item.payload["user_id"]}')
         return {'ok': True}
 
     elif item.event == "converation:created" and item.payload["user_id"]:

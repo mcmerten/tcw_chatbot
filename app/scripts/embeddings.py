@@ -11,7 +11,7 @@ import pinecone
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.document_loaders import UnstructuredFileLoader
 from langchain.embeddings import OpenAIEmbeddings
-from app.config import settings, db_settings
+from app.config import settings
 
 
 # Constants
