@@ -5,9 +5,7 @@ from urllib.parse import urlparse
 from collections import deque
 from html.parser import HTMLParser
 import urllib.request
-from bs4 import BeautifulSoup
 from dotenv import load_dotenv
-import json
 import boto3
 import botocore.session
 import datetime
@@ -22,7 +20,7 @@ AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
 HTTP_URL_PATTERN = r'^http[s]*://.+'
 DOMAIN = "tcw.de"
 FULL_URL = "https://tcw.de/"
-url_blacklist = [
+URL_BLACKLIST = [
     "https://tcw.de/uploads",
     "https://tcw.de/fachliteratur",
     "https://tcw.de/publikationen",
@@ -32,12 +30,15 @@ url_blacklist = [
 
 # S3 client
 session = boto3.session.Session()
-client = session.client('s3',
-                        endpoint_url='https://fra1.digitaloceanspaces.com',
-                        config=botocore.config.Config(s3={'addressing_style': 'virtual'}),
-                        region_name='fra1',
-                        aws_access_key_id=AWS_ACCESS_KEY_ID,
-                        aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
+client = session.client(
+    's3',
+    endpoint_url='https://fra1.digitaloceanspaces.com',
+    config=botocore.config.Config(s3={'addressing_style': 'virtual'}),
+    region_name='fra1',
+    aws_access_key_id=AWS_ACCESS_KEY_ID,
+    aws_secret_access_key=AWS_SECRET_ACCESS_KEY
+)
+
 
 class HyperlinkParser(HTMLParser):
     def __init__(self):
@@ -94,18 +95,21 @@ def get_domain_hyperlinks(local_domain, url):
 
 
 def is_blacklisted(url):
-    for blacklisted_url in url_blacklist:
+    for blacklisted_url in URL_BLACKLIST:
         if blacklisted_url in url:
             return True
     return False
 
+
 def write_to_s3(local_domain, filename, html_content, metadata):
-    client.put_object(Bucket='tcw-chatbot',
-                      Key=f'dev/scraper/{local_domain}/{filename}',
-                      Body=html_content,
-                      ACL='private',
-                      Metadata=metadata
-                      )
+    client.put_object(
+        Bucket='tcw-chatbot',
+        Key=f'dev/scraper/{local_domain}/{filename}',
+        Body=html_content,
+        ACL='private',
+        Metadata=metadata
+    )
+
 
 def crawl(url):
     local_domain = urlparse(url).netloc
@@ -140,6 +144,3 @@ def crawl(url):
 
 # Start Crawling
 crawl(FULL_URL)
-# current date
-
-
