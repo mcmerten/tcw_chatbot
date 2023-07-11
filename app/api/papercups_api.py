@@ -3,6 +3,8 @@ import uuid
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.responses import FileResponse
+
 
 import requests
 from pydantic import BaseModel
@@ -91,7 +93,8 @@ class Item(BaseModel):
 
 @app.get("/")
 async def root():
-    return {"message": "TCW Chatbot API is online"}
+    return FileResponse('../static/index.html')
+
 
 @app.post("/chat")
 async def webhook(item: Item):
