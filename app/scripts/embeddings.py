@@ -11,26 +11,27 @@ import pinecone
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.document_loaders import UnstructuredFileLoader
 from langchain.embeddings import OpenAIEmbeddings
+
+from unstructured.partition.html import partition_html
+from unstructured.staging.base import convert_to_dict
 from app.config import settings
 
 
 # Constants
 DOMAIN = "tcw.de"
 FULL_URL = "https://tcw.de/"
-S3_BUCKET = 'tcw-chatbot'
 S3_PREFIX = 'dev/scraper/tcw.de/'
 TMP_DIR = 'tmp'
 VECTOR_DIMENSION = 1536
 BATCH_LIMIT = 100
-PINECONE_INDEX_NAME = "tcw-website-embeddings"
-PINECONE_ENVIRONMENT = "us-west1-gcp-free"
+
 
 # Set up s3 client
 session = boto3.session.Session()
 s3_client = session.client('s3',
-                           endpoint_url='https://fra1.digitaloceanspaces.com',
+                           endpoint_url=settings.AWS_ENDPOINT_URL,
                            config=botocore.config.Config(s3={'addressing_style': 'virtual'}),
-                           region_name='fra1',
+                           region_name=settings.AWS_REGION_NAME,
                            aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
                            aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY)
 
@@ -43,7 +44,7 @@ def remove_temp_dir(dir_name=TMP_DIR):
     shutil.rmtree(dir_name)
 
 # Download files from s3 to local directory
-def download_files_from_s3(bucket=S3_BUCKET, prefix=S3_PREFIX, dir_name=TMP_DIR):
+def download_files_from_s3(bucket=settings.S3_BUCKET, prefix=S3_PREFIX, dir_name=TMP_DIR):
     try:
         response = s3_client.list_objects(Bucket=bucket, Prefix=prefix)
         if 'Contents' not in response:
@@ -98,8 +99,8 @@ def get_filtered_documents_from_s3(dir_name=TMP_DIR):
 
 
 # Create vector database
-def create_vector_db(documents, index_name=PINECONE_INDEX_NAME, vector_dimension=VECTOR_DIMENSION, batch_limit=BATCH_LIMIT):
-    pinecone.init(environment=PINECONE_ENVIRONMENT, api_key=settings.PINECONE_API_KEY)
+def create_vector_db(documents, index_name=settings.PINECONE_INDEX_NAME, vector_dimension=VECTOR_DIMENSION, batch_limit=BATCH_LIMIT):
+    pinecone.init(environment=settings.PINECONE_ENVIRONMENT, api_key=settings.PINECONE_API_KEY)
     embeddings = OpenAIEmbeddings()
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=512, chunk_overlap=20)
 

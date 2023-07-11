@@ -1,4 +1,3 @@
-import os
 import re
 import requests
 from urllib.parse import urlparse
@@ -27,9 +26,9 @@ URL_BLACKLIST = [
 session = boto3.session.Session()
 client = session.client(
     's3',
-    endpoint_url='https://fra1.digitaloceanspaces.com',
+    endpoint_url=settings.AWS_ENDPOINT_URL,
     config=botocore.config.Config(s3={'addressing_style': 'virtual'}),
-    region_name='fra1',
+    region_name=settings.AWS_REGION_NAME,
     aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
     aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY
 )
@@ -137,5 +136,6 @@ def crawl(url):
                 seen.add(link)
 
 
-# Start Crawling
-crawl(FULL_URL)
+if __name__ == "__main__":
+    # Start Crawling
+    crawl(FULL_URL)

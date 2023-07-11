@@ -1,8 +1,8 @@
 import json
 import openai
+import datetime
 from app.database import DatabaseManager, Conversation, Summary
 from app.config import settings
-import datetime
 from app.core.logger import get_logger
 
 logger = get_logger(__name__)
@@ -100,4 +100,4 @@ if __name__ == "__main__":
     for convo in list_conversations(db_session, all_conversations=True):
         fetched_conversation = fetch_conversation(db_session, convo[0])
         gpt_response = create_response(fetched_conversation)
-       # db_manager.write_to_db(gpt_response)
+        db_manager.write_to_db(gpt_response)
