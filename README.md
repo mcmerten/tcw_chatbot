@@ -45,11 +45,6 @@ The project, developed in Python, uses:
 └── static
     └── application.jpg
     └── index.html
-<<<<<<< HEAD
-
-
-=======
->>>>>>> c9c37d0 (README picture changed)
 ```
 
 
