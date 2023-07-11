@@ -10,4 +10,6 @@ RUN pip install --upgrade -r /app/requirements.txt
 
 COPY . /app/
 
+ENV APP_PATH=/app
+
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080"]

@@ -1,5 +1,6 @@
 import datetime
 import uuid
+import os
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -93,7 +94,8 @@ class Item(BaseModel):
 
 @app.get("/")
 async def root():
-    return FileResponse('../static/index.html')
+    app_path = os.getenv("APP_PATH", "..")
+    return FileResponse(f'/{app_path}/static/index.html')
 
 
 @app.post("/chat")
