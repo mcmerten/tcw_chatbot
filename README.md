@@ -40,7 +40,6 @@ The project, developed in Python, uses:
 │   ├── main.py
 │   └── scripts
 │       ├── embeddings.py
-│       ├── embeddingsV2.py
 │       └── scraper.py
 ├── static
 │   └── application.jpg
