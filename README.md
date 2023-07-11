@@ -14,7 +14,7 @@ The project, developed in Python, uses:
 - Pinecone Vector DB
 - Hosted on DigitalOcean
 
-<img src="static/application_structure_dark.png" alt="drawing" width="1000"/>
+<img src="static/application.png" alt="drawing" width="1000"/>
 
 ## Repository Structure
 ```markdown
@@ -43,7 +43,7 @@ The project, developed in Python, uses:
 │       ├── embeddings.py
 │       └── scraper.py
 └── static
-    └── application.jpg
+    └── application.png
     └── index.html
 ```
 
