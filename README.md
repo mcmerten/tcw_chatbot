@@ -21,6 +21,7 @@ The project, developed in Python, uses:
 .
 ├── Dockerfile
 ├── README.md
+├── requirements.txt
 ├── app
 │   ├── analysis
 │   │   └── analysis.py
@@ -41,12 +42,10 @@ The project, developed in Python, uses:
 │   └── scripts
 │       ├── embeddings.py
 │       └── scraper.py
-├── static
-│   └── application.jpg
-│   └── index.html
-├── demo
-│   └── index.html
-└── requirements.txt
+└── static
+    └── application.jpg
+    └── index.html
+
 
 ```
 
