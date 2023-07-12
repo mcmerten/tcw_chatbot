@@ -6,7 +6,6 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import FileResponse
 
-
 import requests
 from pydantic import BaseModel
 
@@ -122,3 +121,7 @@ async def webhook(item: Item):
     else:
         raise HTTPException(status_code=400, detail="Invalid event or payload")
 
+@app.post("/webhooks/message-created")
+async def message_created(item: Item):
+    # TODO: handle message created event
+    pass
