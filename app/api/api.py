@@ -94,7 +94,7 @@ class Item(BaseModel):
 @app.get("/")
 async def root():
     app_path = os.getenv("APP_PATH", "..")
-    return FileResponse(f'/{app_path}/static/index.html')
+    return FileResponse(f'{app_path}/static/index.html')
 
 
 @app.post("/chat")

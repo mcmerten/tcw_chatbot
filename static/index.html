@@ -62,48 +62,52 @@ window.Papercups = {
   type="text/javascript"
   async
   defer
-  src="https://app.papercups.io/widget.js"
-></script>
+  src="https://app.papercups.io/widget.js">
+ </script>
     -->
 
     <script>
-      (function(d,t) {
-        var BASE_URL="https://app.chatwoot.com";
-        var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
-        g.src=BASE_URL+"/packs/js/sdk.js";
-        g.defer = true;
-        g.async = true;
-        s.parentNode.insertBefore(g,s);
-        g.onload=function(){
-          window.chatwootSDK.run({
-            websiteToken: 'QEPnKfGkFcxvZBwFF9kpk51q',
-            baseUrl: BASE_URL
-          })
-        }
-      })(document,"script");
+        (function (d, t) {
+            var BASE_URL = "https://app.chatwoot.com";
+            var g = d.createElement(t), s = d.getElementsByTagName(t)[0];
+            g.src = BASE_URL + "/packs/js/sdk.js";
+            g.defer = true;
+            g.async = true;
+            s.parentNode.insertBefore(g, s);
+            g.onload = function () {
+                window.chatwootSDK.run({
+                    websiteToken: 'QEPnKfGkFcxvZBwFF9kpk51q',
+                    baseUrl: BASE_URL
+                })
+            }
+        })(document, "script");
     </script>
 
 </head>
 
 <body>
-    <header>
-        <h1>ABC Consultancy Services</h1>
-    </header>
+<header>
+    <h1>ABC Consultancy Services</h1>
+</header>
 
-    <main>
-        <h2>About Us</h2>
-        <p>ABC Consultancy Services is a leading global consultancy, helping organizations navigate their business challenges. We offer high-quality, professional consulting services, bringing innovative ideas, improved methodologies, and highly experienced consultants to solve your complex business issues.</p>
+<main>
+    <h2>About Us</h2>
+    <p>ABC Consultancy Services is a leading global consultancy, helping organizations navigate their business
+        challenges. We offer high-quality, professional consulting services, bringing innovative ideas, improved
+        methodologies, and highly experienced consultants to solve your complex business issues.</p>
 
-        <h2>Services</h2>
-        <p>We provide a wide range of services including business strategy, technology consulting, operational improvement services, and much more.</p>
+    <h2>Services</h2>
+    <p>We provide a wide range of services including business strategy, technology consulting, operational improvement
+        services, and much more.</p>
 
-        <h2>Contact Us</h2>
-        <p>For more information about our services, please contact us at info@abcconsultancy.com or call us at (123) 456-7890.</p>
-    </main>
+    <h2>Contact Us</h2>
+    <p>For more information about our services, please contact us at info@abcconsultancy.com or call us at (123)
+        456-7890.</p>
+</main>
 
-    <footer>
-        <p>© 2023 ABC Consultancy Services. All rights reserved.</p>
-    </footer>
+<footer>
+    <p>© 2023 ABC Consultancy Services. All rights reserved.</p>
+</footer>
 </body>
 
 </html>
