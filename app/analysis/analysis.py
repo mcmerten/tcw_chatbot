@@ -1,9 +1,32 @@
 import json
 import openai
 import datetime
+from pydantic import BaseModel, Field
+from typing import Optional
 from app.database import DatabaseManager, Conversation, Summary
 from app.config import settings
 from app.core.logger import get_logger
+
+###
+from langchain.chat_models import ChatOpenAI
+from langchain.chains import create_extraction_chain_pydantic
+###
+
+
+class Lead(BaseModel):
+    """Identifying information about a lead."""
+
+    name: Optional[str] = Field(None, description="The person's name")
+    email: Optional[str] = Field(None, description="The person's email address")
+    phone: Optional[str] = Field(None, description="The person's phone number")
+    company: Optional[str] = Field(None, description="The company the person is working for")
+    company_size: Optional[str] = Field(None, description="The size of the company")
+    role: Optional[str] = Field(None, description="The position / role the person is working in for the company")
+    interest: Optional[str] = Field(None, description="The intent of the person and what the person is interested in")
+    pain: Optional[str] = Field(None, description="The pain point the person is trying to solve")
+    budget: Optional[str] = Field(None, description="The budget which is available for the person")
+    additional_info: Optional[str] = Field(None, description="Additional information from the user that might be relevant")
+
 
 logger = get_logger(__name__)
 
@@ -55,49 +78,22 @@ def extract_content(response):
     return content_dict
 
 
-def create_response(conversation):
-
-    assistant_input = """You are a an assistant for extracting customer lead information from a chat conversation. 
-                         You will adhere to ALL of the following rules
-                        - You reply with a json file containing the lead information.
-                        - The information is always inserted in the same language as the conversation language
-                        - If the information covers multiple points, you will separate them with a comma (,)
-                        - The field names are always the same
-                        - The field names are: 
-                            - name: the name of the individual
-                            - email: the email of the individual
-                            - phone: the phone number of the individual
-                            - company: the company the individual works for
-                            - company_size: the size of the company the individual works for
-                            - role: the occupation of the individual
-                            - interest: what kind of service the individual is interested in
-                            - pain: what pain points the individual is experiencing
-                            - budget: the budget the individual has for the service
-                            - additional_info: any additional information the individual has provided
-                        - If the user does not provide a field, you will reply with "None"
-                        """
-
-    response = openai.ChatCompletion.create(
-        model="gpt-4",
-        messages=[
-            {"role": "system", "content": assistant_input},
-            {"role": "user", "content": conversation["conversation_str"]},
-        ]
-    )
-    logger.info(f"Data for conversation {conversation['conversation_id']} extracted successfully")
-
-    conversation_summary = extract_content(response)
-
+def extraction(conversation):
+    llm = ChatOpenAI(temperature=0, model="gpt-4-0613")
+    chain = create_extraction_chain_pydantic(pydantic_schema=Lead, llm=llm)
+    result = chain.run(conversation['conversation_str'])
+    result_dict = result[0].dict()
+    print(result_dict)
     metadata = {'conversation_id': conversation['conversation_id'],
                 'user_id': conversation['user_id'],
                 'created_at': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
 
-    summary = Summary(**(metadata | conversation_summary))
+    summary = Summary(**(metadata | result[0].dict()))
     return summary
 
 
 if __name__ == "__main__":
     for convo in list_conversations(db_session, all_conversations=True):
         fetched_conversation = fetch_conversation(db_session, convo[0])
-        gpt_response = create_response(fetched_conversation)
+        gpt_response = extraction(fetched_conversation)
         db_manager.write_to_db(gpt_response)
