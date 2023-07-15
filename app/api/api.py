@@ -97,7 +97,7 @@ async def root():
     return FileResponse(f'{app_path}/static/index.html')
 
 
-@app.post("/chat")
+@app.post("/webhooks/message-created")
 async def webhook(item: Item):
     """
     Process incoming webhook events.
@@ -121,7 +121,4 @@ async def webhook(item: Item):
     else:
         raise HTTPException(status_code=400, detail="Invalid event or payload")
 
-@app.post("/webhooks/message-created")
-async def message_created(item: Item):
-    # TODO: handle message created event
-    pass
+

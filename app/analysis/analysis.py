@@ -21,6 +21,7 @@ class Lead(BaseModel):
     phone: Optional[str] = Field(None, description="The person's phone number")
     company: Optional[str] = Field(None, description="The company the person is working for")
     company_size: Optional[str] = Field(None, description="The size of the company")
+    industry: Optional[str] = Field(None, description="The industry of the company")
     role: Optional[str] = Field(None, description="The position / role the person is working in for the company")
     interest: Optional[str] = Field(None, description="The intent of the person and what the person is interested in")
     pain: Optional[str] = Field(None, description="The pain point the person is trying to solve")
