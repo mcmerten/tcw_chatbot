@@ -1,115 +1,156 @@
+import json
 import openai
-from langchain.memory import ConversationBufferMemory
-from langchain.chains import ConversationalRetrievalChain
-from langchain.prompts import PromptTemplate
-from langchain.embeddings import OpenAIEmbeddings
-from langchain.chat_models import ChatOpenAI
-from langchain.chains import LLMChain
-from langchain.chains.question_answering import load_qa_chain
-from langchain.vectorstores import Pinecone
-import pinecone
-from app.config import settings
-from app.core.logger import get_logger
+import requests
+from tenacity import retry, wait_random_exponential, stop_after_attempt
 
-logger = get_logger(__name__)
+from app.chatbot.retrieval_chatbot import RetrievalChatbot
+from app.chatbot.lead_chatbot import LeadChatbot
+from app.config import settings
+from app.core import logger
+
+logger = logger.get_logger(__name__)
 
 openai.api_key = settings.OPENAI_API_KEY
-# Connect to pinecone vector store
-pinecone.init(environment="us-west1-gcp-free")
-text_field = "text"
-embeddings = OpenAIEmbeddings()
-index = pinecone.Index("tcw-website-embeddings")
-db = Pinecone(index, embeddings.embed_query, text_field)
-
 
 class Chatbot:
     def __init__(self):
-        self._define_prompts()
-        self.llm = ChatOpenAI(temperature=0, model_name=settings.GPT_MODEL)
-        self.define_chains()
-        self.chat_history = []
+        self.conversation_history = []
+        self.add_message("system",
+                        """You are TCW-GPT, a helpful assistant helps users on the TCW website. 
+                        - You help users to find relevant information and qualify whether or not they are potential customers.
+                        - You must use the provided functions.
+                        - Your answers should never exceed 150 characters.""")
+        self.add_message("assistant", "Hallo, wie kann ich Ihnen weiterhelfen?")
+        self.functions = [
+            {
+                "name": "lead_qualification",
+                "description":  """Use this function qualify leads and extract lead information. You must use this function for the first response. Do not use the function more than 3 times.""",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "query": {
+                            "type": "string",
+                            "description": "User query to the assistant",
+                        }
+                    },
+                    "required": ["query"],
+                },
+            },
+            {
+                "name": "website_chat",
+                "description": "Use this function to enable the user to chat with the website. You should NEVER call this function before lead_qualification has been called in the conversation.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "query": {
+                            "type": "string",
+                            "description": "User query to the assistant",
+                        }
+                    },
+                    "required": ["query"],
+                },
+            }
+        ]
 
-    def _define_prompts(self):
-        template_condense = """
-            Given the following conversation and a follow up question, 
-            rephrase the follow up question to be a standalone question.
-            Chat History:
-            {chat_history}
-            Follow Up Input: {question}
-            Standalone question:
-        """
-        self.condense_question_prompt = PromptTemplate.from_template(template_condense)
+    def lead_qualification(self, query):
+        """Use this function qualify leads and extract lead information"""
+        chatbot = LeadChatbot(self.conversation_history)
+        return chatbot.chat(query)
 
-        template_qa = """
-            Assistant is a LLM trained to be an enthusiastic TCW website guide.
-            Assistant is designed to assist with question related to the website of TCW
-            Assistant will answer the question based on the context below and follows ALL the following rules when generating an answer:
-            - The primary goal is to provide the user with an answer that is relevant to the question.
-            - Do not make up any answers if the CONTEXT does not have relevant information.
-            - Answer the question in the language in which it was asked and with in an informal tone, in german use formal language and "Sie".
-            - IF the context does not have relevant information, ask a question back to the user that will help you answer the original question, or point to the TCW contact page "https://www.tcw.de/unternehmen/sonstiges/kontakt-170".
-            - The answer should be no longer than 2 sentences.
-            - The MOST IMPORTANT goal is to collect relevant lead data from the user while helping them with their question.
-            - You MUST try to collect the following information from the user:
-                            - name: the name of the individual
-                            - email: the email of the individual
-                            - phone: the phone number of the individual
-                            - company: the company the individual works for
-                            - company_size: the size of the company the individual works for
-                            - role: the occupation of the individual
-                            - interest: what kind of service the individual is interested in
-                            - pain: what pain points the individual is experiencing
-                            - budget: the budget the individual has for the service
-                            - additional_info: any additional information the individual has provided
-            
-            Question: {question}
-            =========
-            {context}
-            =========
-        """
-        self.qa_prompt = PromptTemplate(
-            template=template_qa,
-            input_variables=["question", "context"]
-        )
+    def website_chat(self, query):
+        """Use this function to enable the user to chat with the website."""
+        chatbot = RetrievalChatbot(self.conversation_history)
+        return chatbot.chat(query)
 
-    def define_chains(self):
-        question_generator = LLMChain(
-            llm=self.llm,
-            prompt=self.condense_question_prompt,
-            verbose=False
-        )
-        doc_chain = load_qa_chain(
-            llm=self.llm,
-            prompt=self.qa_prompt,
-            chain_type="stuff",
-            verbose=False
-        )
-        memory = ConversationBufferMemory(
-            memory_key='chat_history',
-            return_messages=True,
-            output_key='answer'
-        )
+    @retry(wait=wait_random_exponential(min=1, max=40), stop=stop_after_attempt(3))
+    def chat_completion_request(self, messages, functions=None, model="gpt-4-0613"):
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + openai.api_key,
+        }
+        json_data = {"model": model, "messages": messages}
+        if functions is not None:
+            json_data.update({"functions": functions})
+        try:
+            return requests.post(
+                "https://api.openai.com/v1/chat/completions",
+                headers=headers,
+                json=json_data,
+            )
+        except Exception as e:
+            logger.error(f"Unable to generate ChatCompletion response: {e}")
+            return None
 
-        self.qa = ConversationalRetrievalChain(
-            question_generator=question_generator,
-            combine_docs_chain=doc_chain,
-            retriever=db.as_retriever(),
-            memory=memory,
-            verbose=False
-        )
+    def call_chatbot_function(self, messages, full_message):
+        """Function calling function which executes function calls when the model believes it is necessary.
+        Currently extended by adding clauses to this if statement."""
+        function_name = full_message["message"]["function_call"]["name"]
+        try:
+            parsed_output = json.loads(full_message["message"]["function_call"]["arguments"])
+        except Exception as e:
+            logger.error(f"Error parsing arguments: {e}")
+            return None
 
-    def get_answer(self, query):
-        result = self.qa({"question": query, "chat_history": self.chat_history})
-        self.chat_history.append((query, result["answer"]))
-        return result["answer"]
+        if function_name == "website_chat":
+            logger.info("Calling website_chat() function")
+            results = self.website_chat(parsed_output["query"])
+        elif function_name == "lead_qualification":
+            logger.info("Calling lead_qualification() function")
+            results = self.lead_qualification(parsed_output["query"])
+        else:
+            raise Exception("Function does not exist and cannot be called")
 
-    def get_chat_history(self):
-        return self.chat_history
+        messages.append({
+            "role": "function",
+            "name": function_name,
+            "content": str(results),
+        })
+        return str(results)
+        # Necessary?
+        #try:
+        #    response = self.chat_completion_request(messages)
+        #    return response.json()
+        #except Exception as e:
+        #    print(type(e))
+        #    raise Exception("Function chat request failed")
 
-    # create a function which appends the most recent chat history to a file based on a user id
-    def append_chat_history(self, user_id):
-        pass
+    def chat_completion_with_function_execution(self, messages):
+        """This function makes a ChatCompletion API call with the option of adding functions"""
+        functions = self.functions
+        response = self.chat_completion_request(messages, functions)
+        full_message = response.json()["choices"][0]
+        if full_message["finish_reason"] == "function_call":
+            logger.info(f"Function generation requested")
+            return self.call_chatbot_function(messages, full_message)
+        else:
+            logger.info(f"Function not required, responding to user")
+            return response.json()
+
+    def add_message(self, role, content):
+        message = {"role": role, "content": content}
+        self.conversation_history.append(message)
+
+    def display_conversation(self, detailed=False):
+        for message in self.conversation_history:
+            print(
+                    f"{message['role']}: {message['content']}\n------------------------",
+                )
+
+    def chat(self, query):
+        self.add_message("user", query)
+        chat_response = self.chat_completion_with_function_execution(self.conversation_history)
+        return chat_response
 
 
+def main():
+    bot = Chatbot()
+    while True:
+        usr_input = input("User: ")
+        if usr_input == "quit":
+            break
+        resp = bot.chat(usr_input)
+        print(resp)
 
 
+if __name__ == "__main__":
+    main()

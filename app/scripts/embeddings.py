@@ -8,6 +8,7 @@ from langchain.embeddings import OpenAIEmbeddings
 from app.config import settings
 from unstructured.partition.html import partition_html
 from unstructured.staging.base import convert_to_dict
+from unstructured.partition.text_type import is_possible_title
 from app.core.logger import get_logger
 
 
@@ -69,7 +70,7 @@ def html_to_text(html_list):
         for element in html_elements:
             element['metadata'] = html_file['metadata']
             element = {k: v for k, v in element.items() if k in ['type', 'text', 'metadata']}
-            if element['type'] not in ['NarrativeText', 'ListItem'] and element['text'] not in seen:
+            if element['type'] not in ['NarrativeText', 'ListItem'] and element['text'] not in seen and not is_possible_title(element['text']):
                 continue
             else:
                 seen.add(element['text'])

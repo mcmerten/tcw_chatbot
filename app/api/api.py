@@ -45,7 +45,7 @@ class Papercups:
         headers = {'Authorization': f'Bearer {self.token}'}
         result = {
             "conversation_id": params["conversation_id"],
-            "body": bot.get_answer(params["body"])
+            "body": bot.chat(params["body"])
         }
 
         data_dict = {
@@ -120,5 +120,3 @@ async def webhook(item: Item):
 
     else:
         raise HTTPException(status_code=400, detail="Invalid event or payload")
-
-
