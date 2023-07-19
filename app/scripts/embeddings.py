@@ -66,7 +66,7 @@ def html_to_text(html_list):
     for html_file in html_list:
         partitioned_html = partition_html(text=html_file['page_content'], strategy="hi_res", include_metadata=False)
         html_elements = convert_to_dict(partitioned_html)
-
+        # TODO: Merge splitted elements with same metadata (from same html file)
         for element in html_elements:
             element['metadata'] = html_file['metadata']
             element = {k: v for k, v in element.items() if k in ['type', 'text', 'metadata']}

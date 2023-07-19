@@ -23,27 +23,29 @@ The project, developed in Python, uses:
 ├── README.md
 ├── requirements.txt
 ├── app
+│   ├── main.py
+│   ├── config.py
 │   ├── analysis
 │   │   └── analysis.py
 │   ├── api
 │   │   ├── __init__.py
-│   │   └── papercups_api.py
+│   │   └── api.py
 │   ├── chatbot
 │   │   ├── __init__.py
-│   │   └── chatbot.py
-│   ├── config.py
+│   │   ├── chatbot.py
+│   │   ├── lead_chatbot.py
+│   │   └── retrieval_chatbot.py
 │   ├── core
 │   │   └── logger.py
 │   ├── database
 │   │   ├── __init__.py
 │   │   ├── manager.py
 │   │   └── models.py
-│   ├── main.py
 │   └── scripts
 │       ├── embeddings.py
 │       └── scraper.py
 └── static
-    └── application.png
+    ├── application.png
     └── index.html
 ```
 

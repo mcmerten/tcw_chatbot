@@ -1,7 +1,6 @@
 import logging
 import sys
 
-
 def get_logger(name: str):
     logger = logging.getLogger(name)
     logger.setLevel(logging.INFO)
@@ -15,3 +14,5 @@ def get_logger(name: str):
     logger.addHandler(handler)
 
     return logger
+
+# TODO: Add cost logger for each API call

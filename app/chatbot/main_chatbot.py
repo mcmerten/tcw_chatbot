@@ -38,7 +38,7 @@ class Chatbot:
             },
             {
                 "name": "website_chat",
-                "description": "Use this function to enable the user to chat with the website. You should NEVER call this function before lead_qualification has been called in the conversation.",
+                "description": "Use this function to enable the user to chat with the website.",
                 "parameters": {
                     "type": "object",
                     "properties": {
@@ -138,6 +138,7 @@ class Chatbot:
 
     def chat(self, query):
         self.add_message("user", query)
+        print(self.conversation_history)
         chat_response = self.chat_completion_with_function_execution(self.conversation_history)
         return chat_response
 

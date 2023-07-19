@@ -1,28 +1,27 @@
 import openai
 from app.config import settings
+from app.core.logger import get_logger
+
+logger = get_logger(__name__)
 
 class LeadChatbot:
-    def __init__(self, history):
+    def __init__(self, history=[]):
         self.chat_history = history
         openai.api_key = settings.OPENAI_API_KEY
 
     def get_answer(self, user_message):
         system_prompt = """
-                    You are a lead generation bot. You are tasked with asking the user questions to extract lead information.
-                    - You ONLY extract information from the user. You DO NOT extract information from the assistant.
-                    - Use the user's answers to ask the next question. 
-                    - Do not ask multiple questions at once.
-                    - Your answer should be short and precise. Do not exceed 150 characters.
-                    - Always be thankful and polite. If the user does not want to answer the question, that's okay.
-                    - Always start the conversation in German. Only switch the language if the user asks you to.
-                    - You are ONLY allowed to ask for the following information in the following order:
-                        1. name
-                        2. company industry and company size
-                        3. email
+                        You're a lead generation bot with the task of engaging the user to obtain key information. Observe the following guidelines:
+                        - You must answer in maximum 100 characters.
+                        - Be defensive and thankful
+                        - Answer the user's questions with something like "Before I answer your question, I need to ask you a few questions first."
+                        - Respond to the user's answers with the next question
+                        - You're only permitted to ask for the following details, in this order: name, company's industry & size, and email    
+                        - After you collectd the relevant information, ask the user what they want to ask next.                    
                 """
 
         assistant_prompt = f"""
-                    - Based on the following conversation history, check which information have already been asked for and ask the user for the missing information.
+                    Use the existing CONVERSATION HISTORY to identify which data has already been collected.
 
                     CONVERSATION HISTORY: 
                     {self.chat_history}
@@ -37,16 +36,18 @@ class LeadChatbot:
                 ]
             )
         except Exception as e:
-            print(f"Error calling OpenAI API: {e}")
+            logger.error(f"Error calling OpenAI API: {e}")
             return
 
         answer = response['choices'][0]['message']['content']
-        # self.chat_history.append((f"User: {user_message}\n", f"Assistant: {answer}\n"))
+        if __name__ == "__main__":
+            self.chat_history.append((f"User: {user_message}\n", f"Assistant: {answer}\n"))
         return answer
 
     def chat(self, user_message):
         final_answer = self.get_answer(user_message)
         return final_answer
+
 
 if __name__ == "__main__":
     bot = LeadChatbot()
