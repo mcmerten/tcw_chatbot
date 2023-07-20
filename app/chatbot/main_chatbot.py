@@ -24,7 +24,7 @@ class Chatbot:
         self.functions = [
             {
                 "name": "lead_qualification",
-                "description":  """Use this function qualify leads and extract lead information. You must use this function for the first response. Do not use the function more than 3 times.""",
+                "description":  """Use this function to qualify leads and extract lead information. You must use this function for the first response. Do not use the function more than 3 times.""",
                 "parameters": {
                     "type": "object",
                     "properties": {
@@ -138,7 +138,6 @@ class Chatbot:
 
     def chat(self, query):
         self.add_message("user", query)
-        print(self.conversation_history)
         chat_response = self.chat_completion_with_function_execution(self.conversation_history)
         return chat_response
 

@@ -58,7 +58,9 @@ def extract_content(response):
 
 
 def create_response(conversation):
+    # TODO: Add example of output format to assistant_prompt
     assistant_prompt = """
+        - You are an assistant designed to extract entities from text.
         - You are an assistant that extracts lead info from conversations. 
         - You ONLY extract information from the user. You DO NOT extract information from the assistant. 
         - If no information is provided, use "None".
