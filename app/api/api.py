@@ -28,13 +28,6 @@ class Papercups:
         """
         self.token = token
 
-    #@staticmethod
-    #def init(token):
-    #    """
-    #    Initialize a new Papercups instance.
-    #    """
-    #    return Papercups(token)
-
     def send_message(self, params):
         """
         Send a message to Papercups.

@@ -10,8 +10,8 @@ class RetrievalPrompts:
         - You must format your answer in the format of the EXAMPLE ANSWER
     
         EXAMPLE:
-        'This is an example sentence and I am stating information from a page. I have additional information from the same page ([1](https://tcw.de/some-information-from-source))'. 
-        I have additional information here ([2](https://tcw.de/some-information-from-another-page))'
+        This is an example sentence and I am stating information from a page. I have additional information from the same page ([1](https://tcw.de/some-information-from-source))'. 
+        I have additional information here ([2](https://tcw.de/some-information-from-another-page))
         """
         return prompt
 
@@ -42,10 +42,11 @@ class RetrievalPrompts:
              4. Consolidate the answer and give each source a number starting from 1 in the order of appearance
              5. Check if the answer 
              6. Format the answer in the Output format:
+             7. Format each distinct source in markdown style [1](https://tcw.de/some-information-from-source)
                      
             Output format:
-            'This is an example sentence and I am stating information from a page. I have additional information from the same page ([1](https://tcw.de/some-information-from-source))'. 
-            I have additional information here ([2](https://tcw.de/some-information-from-another-page))'
+            This is an example sentence and I am stating information from a page. I have additional information from the same page ([1](https://tcw.de/some-information-from-source))'. 
+            I have additional information here ([2](https://tcw.de/some-information-from-another-page))
             
             CONVERSATION HISTORY: 
             {chat_history}
