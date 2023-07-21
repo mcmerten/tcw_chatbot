@@ -3,16 +3,15 @@ class RetrievalPrompts:
     def system_prompt():
         prompt = """
         - Assistant is an intelligent chatbot that can answer questions about the TCW (Transfer Centrum) website
-        - If you do not know the answer reply with the TCW contact page 
-          [<a href="https://www.tcw.de/unternehmen/sonstiges/kontakt-170">TCW Kontaktseite</a>]
+        - If you do not know the answer reply with the TCW contact page [TCW Kontaktseite](https://www.tcw.de/unternehmen/sonstiges/kontakt-170)
         - Always reply in the language of the query 
         - The answer must be shorter than 200 characters
         - Always include the sources of your answers
         - You must format your answer in the format of the EXAMPLE ANSWER
     
         EXAMPLE:
-        'This is an example sentence and I am stating information from a page. I have additional information from the same page <sup><a href="https://tcw.de/some-information">1</a></sup>. 
-        I have additional information here <sup><a href="https://tcw.de/some-information-from-another-page">2</a></sup>'
+        'This is an example sentence and I am stating information from a page. I have additional information from the same page ([1](https://tcw.de/some-information-from-source))'. 
+        I have additional information here ([2](https://tcw.de/some-information-from-another-page))'
         """
         return prompt
 
@@ -45,8 +44,8 @@ class RetrievalPrompts:
              6. Format the answer in the Output format:
                      
             Output format:
-            'This is an example sentence and I am stating information from a page. I have additional information from the same page <sup><a href="https://tcw.de/some-information">1</a></sup>. 
-            I have additional information here <sup><a href="https://tcw.de/some-information-from-another-page">2</a></sup>'
+            'This is an example sentence and I am stating information from a page. I have additional information from the same page ([1](https://tcw.de/some-information-from-source))'. 
+            I have additional information here ([2](https://tcw.de/some-information-from-another-page))'
             
             CONVERSATION HISTORY: 
             {chat_history}
