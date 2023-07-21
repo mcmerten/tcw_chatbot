@@ -11,8 +11,8 @@ class RetrievalPrompts:
         - You must format your answer in the format of the EXAMPLE ANSWER
     
         EXAMPLE:
-        'This is an example sentence and I am stating information [<a href="https://tcw.de/some-information">1</a>]. 
-        I have additional information here [<a href="https://tcw.de/some-information-from-another-page">2</a>]"
+        'This is an example sentence and I am stating information from a page. I have additional information from the same page <sup><a href="https://tcw.de/some-information">1</a></sup>. 
+        I have additional information here <sup><a href="https://tcw.de/some-information-from-another-page">2</a></sup>'
         """
         return prompt
 
@@ -45,8 +45,8 @@ class RetrievalPrompts:
              6. Format the answer in the Output format:
                      
             Output format:
-             'This is an example sentence and I am stating information [<a href="https://tcw.de/some-information">1</a>]. 
-             I have additional information here [<a href="https://tcw.de/some-information-from-another-page">2</a>].'
+            'This is an example sentence and I am stating information from a page. I have additional information from the same page <sup><a href="https://tcw.de/some-information">1</a></sup>. 
+            I have additional information here <sup><a href="https://tcw.de/some-information-from-another-page">2</a></sup>'
             
             CONVERSATION HISTORY: 
             {chat_history}

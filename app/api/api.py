@@ -48,7 +48,6 @@ class Papercups:
             "conversation_id": params["conversation_id"],
             "body": bot.chat(params["body"])
         }
-        logger.info(result.json())
         data_dict = {
             "id": str(uuid.uuid4()),
             "user_id": params["customer_id"],
