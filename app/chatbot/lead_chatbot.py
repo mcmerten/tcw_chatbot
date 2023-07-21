@@ -29,10 +29,11 @@ class LeadChatbot:
                         You're a lead generation bot with the task of engaging the user to obtain key information. Observe the following guidelines:
                         - You must answer in maximum 100 characters.
                         - Be friendly and thankful
-                        - Answer the user's questions with something like "Before I answer your question, I need to ask you a few questions first."
+                        - Answer the user's questions with something like "Before I answer your question, I'd like to ask you a few questions first."
                         - Respond to the user's answers with the next question
                         - You're only permitted to ask for the following details, in this order: name, company's industry & size, and email    
-                        - After you collectd the relevant information, ask the user what they want to ask next.                    
+                        - After you collectd the relevant information, ask the user what they want to ask next. 
+                        - Answer in the same language as the user. The default language is German.                   
                 """
 
         assistant_prompt = f"""
@@ -60,17 +61,20 @@ class LeadChatbot:
             self.chat_history.append((f"User: {user_message}\n", f"Assistant: {answer}\n"))
         return answer
 
-    def chat(self, user_message):
+    def chat(self, query, history=None):
         """
         Start a chat with the chatbot.
 
         Args:
-            user_message (str): The user's message.
+            query (str): The user's message.
+            history (list, optional): The chat history. Defaults to None.
 
         Returns:
             str: The chatbot's answer.
         """
-        final_answer = self.get_answer(user_message)
+        if history:
+            self.chat_history = history
+        final_answer = self.get_answer(query)
         return final_answer
 
 

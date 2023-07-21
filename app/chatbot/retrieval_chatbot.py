@@ -36,7 +36,7 @@ class RetrievalChatbot:
             top_k=5,
             include_metadata=True
         )
-        print(query_results)
+
         return query_results
 
     def get_content(self, query_results):
@@ -65,7 +65,9 @@ class RetrievalChatbot:
     def get_chat_history(self):
         return self.chat_history
 
-    def chat(self, query):
+    def chat(self, query, history=None):
+        if history:
+            self.chat_history = history
         query_results = self.query_vector(query)
         content = self.get_content(query_results)
         final_answer = self.get_answer(query, content)

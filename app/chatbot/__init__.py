@@ -1,1 +1,1 @@
-from .main_chatbot import Chatbot
+from app.chatbot.main_chatbot import Chatbot

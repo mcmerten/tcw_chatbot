@@ -6,6 +6,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import FileResponse
 
+import uvicorn
 import requests
 from pydantic import BaseModel
 
@@ -27,12 +28,12 @@ class Papercups:
         """
         self.token = token
 
-    @staticmethod
-    def init(token):
-        """
-        Initialize a new Papercups instance.
-        """
-        return Papercups(token)
+    #@staticmethod
+    #def init(token):
+    #    """
+    #    Initialize a new Papercups instance.
+    #    """
+    #    return Papercups(token)
 
     def send_message(self, params):
         """
@@ -47,14 +48,14 @@ class Papercups:
             "conversation_id": params["conversation_id"],
             "body": bot.chat(params["body"])
         }
-
+        logger.info(result.json())
         data_dict = {
             "id": str(uuid.uuid4()),
             "user_id": params["customer_id"],
             "conversation_id": params["conversation_id"],
             "user_msg": params["body"],
             "bot_msg": result["body"],
-            "created_at": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            "created_at": datetime.datetime.utcnow()
         }
 
         conversation_data = Conversation(**data_dict)
@@ -73,7 +74,7 @@ class Papercups:
         requests.get(f"{settings.BASE_URL}/api/v1/conversations/{conversation_id}", headers=headers)
 
 
-papercups = Papercups.init(settings.PAPERCUPS_API_KEY)
+papercups = Papercups(settings.PAPERCUPS_API_KEY)
 app = FastAPI()
 
 origins = ["http://localhost:3000"]
@@ -120,3 +121,7 @@ async def webhook(item: Item):
 
     else:
         raise HTTPException(status_code=400, detail="Invalid event or payload")
+
+if __name__ == "__main__":
+    os.environ["APP_PATH"] = "../.."
+    uvicorn.run(app, host="0.0.0.0", port=8000)

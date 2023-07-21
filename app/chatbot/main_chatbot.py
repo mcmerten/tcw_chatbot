@@ -7,6 +7,7 @@ from app.chatbot.retrieval_chatbot import RetrievalChatbot
 from app.chatbot.lead_chatbot import LeadChatbot
 from app.config import settings
 from app.core import logger
+from app.chatbot.prompts import LeadGenerationPrompts
 
 logger = logger.get_logger(__name__)
 
@@ -15,16 +16,17 @@ openai.api_key = settings.OPENAI_API_KEY
 class Chatbot:
     def __init__(self):
         self.conversation_history = []
-        self.add_message("system",
-                        """You are TCW-GPT, a helpful assistant helps users on the TCW website. 
-                        - You help users to find relevant information and qualify whether or not they are potential customers.
-                        - You must use the provided functions.
-                        - Your answers should never exceed 150 characters.""")
-        self.add_message("assistant", "Hallo, wie kann ich Ihnen weiterhelfen?")
+        self.lead_chatbot = LeadChatbot()
+        self.retrieval_chatbot = RetrievalChatbot()
+        self.assistant_prompt = "Hallo, wie kann ich Ihnen weiterhelfen?"
+        self.system_prompt=LeadGenerationPrompts.system_prompt()
+        self.add_message("system", self.system_prompt)
+        self.add_message("assistant", self.assistant_prompt)
+
         self.functions = [
             {
                 "name": "lead_qualification",
-                "description":  """Use this function to qualify leads and extract lead information. You must use this function for the first response. Do not use the function more than 3 times.""",
+                "description":  """Use this function to qualify leads and extract lead information.""",
                 "parameters": {
                     "type": "object",
                     "properties": {
@@ -34,11 +36,12 @@ class Chatbot:
                         }
                     },
                     "required": ["query"],
+                    "optional": ["chat_history"]
                 },
             },
             {
                 "name": "website_chat",
-                "description": "Use this function to enable the user to chat with the website.",
+                "description": "Use this function to enable the user to chat with the website. You must use this function to answer the user's questions.",
                 "parameters": {
                     "type": "object",
                     "properties": {
@@ -52,16 +55,6 @@ class Chatbot:
             }
         ]
 
-    def lead_qualification(self, query):
-        """Use this function qualify leads and extract lead information"""
-        chatbot = LeadChatbot(self.conversation_history)
-        return chatbot.chat(query)
-
-    def website_chat(self, query):
-        """Use this function to enable the user to chat with the website."""
-        chatbot = RetrievalChatbot(self.conversation_history)
-        return chatbot.chat(query)
-
     @retry(wait=wait_random_exponential(min=1, max=40), stop=stop_after_attempt(3))
     def chat_completion_request(self, messages, functions=None, model="gpt-4-0613"):
         headers = {
@@ -71,6 +64,8 @@ class Chatbot:
         json_data = {"model": model, "messages": messages}
         if functions is not None:
             json_data.update({"functions": functions})
+            #json_data.update({"function_call": {"name": "website_chat"}})
+            #print(json_data)
         try:
             return requests.post(
                 "https://api.openai.com/v1/chat/completions",
@@ -93,18 +88,14 @@ class Chatbot:
 
         if function_name == "website_chat":
             logger.info("Calling website_chat() function")
-            results = self.website_chat(parsed_output["query"])
+            results = self.retrieval_chatbot.chat(parsed_output["query"], self.conversation_history)
         elif function_name == "lead_qualification":
             logger.info("Calling lead_qualification() function")
-            results = self.lead_qualification(parsed_output["query"])
+            results = self.lead_chatbot.chat(parsed_output["query"], self.conversation_history)
         else:
             raise Exception("Function does not exist and cannot be called")
 
-        messages.append({
-            "role": "function",
-            "name": function_name,
-            "content": str(results),
-        })
+        self.add_message("assistant", str(results))
         return str(results)
         # Necessary?
         #try:
@@ -114,36 +105,40 @@ class Chatbot:
         #    print(type(e))
         #    raise Exception("Function chat request failed")
 
-    def chat_completion_with_function_execution(self, messages):
+    def chat_completion_with_function_execution(self, query):
         """This function makes a ChatCompletion API call with the option of adding functions"""
+
+        messages_body = [{"role": "system", "content": self.system_prompt},
+                         {"role": "assistant", "content": self.assistant_prompt},
+                         {"role": "user", "content": query}]
         functions = self.functions
-        response = self.chat_completion_request(messages, functions)
+        response = self.chat_completion_request(messages_body, functions)
+        #print(response.json())
         full_message = response.json()["choices"][0]
         if full_message["finish_reason"] == "function_call":
             logger.info(f"Function generation requested")
-            return self.call_chatbot_function(messages, full_message)
+            return self.call_chatbot_function(messages_body, full_message)
         else:
             logger.info(f"Function not required, responding to user")
             return response.json()
 
     def add_message(self, role, content):
-        message = {"role": role, "content": content}
+        message = f"{role}: {content}"
         self.conversation_history.append(message)
 
-    def display_conversation(self, detailed=False):
+    def display_conversation(self):
         for message in self.conversation_history:
-            print(
-                    f"{message['role']}: {message['content']}\n------------------------",
-                )
+            print(f"{message}\n")
 
     def chat(self, query):
         self.add_message("user", query)
-        chat_response = self.chat_completion_with_function_execution(self.conversation_history)
+        chat_response = self.chat_completion_with_function_execution(query)
         return chat_response
 
 
 def main():
     bot = Chatbot()
+
     while True:
         usr_input = input("User: ")
         if usr_input == "quit":
