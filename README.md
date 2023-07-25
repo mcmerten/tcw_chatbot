@@ -6,13 +6,14 @@ TCW Chatbot is a solution developed for the master's thesis *"Advances in Consul
 A user interacts with a chat widget on a consulting firm's website, discusses their needs and pain points. The chatbot collects, analyzes these interactions, and generates a structured proposal.
 
 ## Technologies
-The project, developed in Python, uses:
+The project leverages the following technologies:
 
-- OpenAI's GPT Model & Embeddings Model
-- S3 Storage
-- PostgreSQL Database
-- Pinecone Vector DB
-- Hosted on DigitalOcean
+- OpenAI: API to leverage LLMs and generate embeddings
+- S3 Storage: Store crawled HTML files
+- PostgreSQL Database: Store chat history and analysis
+- Pinecone Vector DB: Store vector embeddings of crawled HTML files
+- Digital Ocean: Deploy containerized application, host S3 Bucket and Postgres DB
+- Papercups: Chat widget
 
 <img src="static/application.png" alt="drawing" width="1000"/>
 
@@ -32,6 +33,7 @@ The project, developed in Python, uses:
 │   │   └── api.py
 │   ├── chatbot
 │   │   ├── __init__.py
+│   │   ├── prompts.py
 │   │   ├── chatbot.py
 │   │   ├── lead_chatbot.py
 │   │   └── retrieval_chatbot.py

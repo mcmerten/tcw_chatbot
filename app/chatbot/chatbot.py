@@ -2,7 +2,7 @@ import json
 import openai
 import requests
 from tenacity import retry, wait_random_exponential, stop_after_attempt
-
+from prompts import DefaultPrompts
 from app.chatbot.retrieval_chatbot import RetrievalChatbot
 from app.chatbot.lead_chatbot import LeadChatbot
 from app.config import settings
@@ -19,7 +19,7 @@ class Chatbot:
         self.lead_chatbot = LeadChatbot()
         self.retrieval_chatbot = RetrievalChatbot()
         self.assistant_prompt = "Hallo, wie kann ich Ihnen weiterhelfen?"
-        self.system_prompt=LeadGenerationPrompts.system_prompt()
+        self.system_prompt=DefaultPrompts.system_prompt()
         self.add_message("system", self.system_prompt)
         self.add_message("assistant", self.assistant_prompt)
 

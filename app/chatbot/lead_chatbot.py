@@ -1,5 +1,6 @@
 import openai
 from app.config import settings
+from app.chatbot.prompts import LeadPrompts
 from app.core.logger import get_logger
 
 logger = get_logger(__name__)
@@ -25,23 +26,8 @@ class LeadChatbot:
         Returns:
             str: The chatbot's answer.
         """
-        system_prompt = """
-                        You're a lead generation bot with the task of engaging the user to obtain key information. Observe the following guidelines:
-                        - You must answer in maximum 100 characters.
-                        - Be friendly and thankful
-                        - Answer the user's questions with something like "Before I answer your question, I'd like to ask you a few questions first."
-                        - Respond to the user's answers with the next question
-                        - You're only permitted to ask for the following details, in this order: name, company's industry & size, and email    
-                        - After you collectd the relevant information, ask the user what they want to ask next. 
-                        - Answer in the same language as the user. The default language is German.                   
-                """
-
-        assistant_prompt = f"""
-                    Use the existing CONVERSATION HISTORY to identify which data has already been collected.
-
-                    CONVERSATION HISTORY: 
-                    {self.chat_history}
-                """
+        system_prompt = LeadPrompts.system_prompt()
+        assistant_prompt = LeadPrompts.assistant_prompt(user_message, self.chat_history)
         try:
             response = openai.ChatCompletion.create(
                 # TODO: add config variable for model
