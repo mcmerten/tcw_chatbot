@@ -2,12 +2,11 @@ import json
 import openai
 import requests
 from tenacity import retry, wait_random_exponential, stop_after_attempt
-from prompts import DefaultPrompts
+from app.chatbot.prompts import DefaultPrompts
 from app.chatbot.retrieval_chatbot import RetrievalChatbot
 from app.chatbot.lead_chatbot import LeadChatbot
 from app.config import settings
 from app.core import logger
-from app.chatbot.prompts import LeadGenerationPrompts
 
 logger = logger.get_logger(__name__)
 
