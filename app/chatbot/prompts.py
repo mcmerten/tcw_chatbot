@@ -88,7 +88,7 @@ class RetrievalPrompts:
 
                 OUTPUT FORMAT:"""
                 This is an example sentence and I am stating from a page. I have additional information from the same page'. 
-                I have more information listed in another page.\n*Quelle(n): [key information](https://tcw.de/some-information-from-source), [additional information](https://tcw.de/some-information-from-another-page)*
+                I have more information listed in another page.\n\n*Quelle(n): [key information](https://tcw.de/some-information-from-source), [additional information](https://tcw.de/some-information-from-another-page)*
                 """
 
                 ###
