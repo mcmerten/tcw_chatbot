@@ -82,13 +82,13 @@ class RetrievalPrompts:
                  2. Read and understand the CONTEXT consisting of SOURCE and CONTENT. The SOURCE is the URL of the page and the CONTENT is the text from the page.
                  3. Answer the users question based on the CONTEXT and CONVERSATION HISTORY in the same language as the user in maximum 50 words. 
                  4. Consolidate the answer and ALWAYS include a SOURCE.
-                 5. You MUST format the answer in the OUTPUT FORMAT using markdown style for the SOURCE ([<relevant text>](<source-url>))
+                 5. You MUST format the answer in the OUTPUT FORMAT using markdown style for the SOURCE *[<relevant text>](<source-url)*
 
                 ###
 
                 OUTPUT FORMAT:"""
                 This is an example sentence and I am stating from a page. I have additional information from the same page'. 
-                I have more information listed in another page.\nQUELLEN: [key information](https://tcw.de/some-information-from-source), [additional information](https://tcw.de/some-information-from-another-page)
+                I have more information listed in another page.\n*Quelle(n): [key information](https://tcw.de/some-information-from-source), [additional information](https://tcw.de/some-information-from-another-page)*
                 """
 
                 ###
@@ -133,11 +133,9 @@ class DefaultPrompts:
                     - You must use the following functions:
                         - lead_qualification
                         - website_chat
-                    - The default function is lead_qualification. You must call this function first, before calling the website_chat function.
+                    - The default function is lead_qualification. You MUST call this function when a conversation is started. 
                     - If you do not know the answer reply with the TCW contact page [TCW Kontaktseite](https://www.tcw.de/unternehmen/sonstiges/kontakt-170)
-                    - Always reply in the language of the user. The default language is German.
-                    - The answer MUST BE shorter than 250 characters
-    
+                    - Always reply in the language of the user. The default language is German.    
                 """
         return prompt
 

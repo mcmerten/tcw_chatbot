@@ -23,7 +23,7 @@ class Chatbot:
         self.functions = [
             {
                 "name": "lead_qualification",
-                "description":  """Collect data about the user to qualify them as a lead.""",
+                "description":  """Collect data about the user to qualify them as a lead. Initiate the conversation with this function.""",
                 "parameters": {
                     "type": "object",
                     "properties": {
