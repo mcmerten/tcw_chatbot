@@ -80,16 +80,15 @@ class RetrievalPrompts:
                 Take a step-by-step approach in your response
                  1. Remember the CONVERSATION HISTORY
                  2. Read and understand the CONTEXT consisting of SOURCE and CONTENT. The SOURCE is the URL of the page and the CONTENT is the text from the page.
-                 3. Answer the users question based on the CONTEXT and CONVERSATION HISTORY in the same language as the user
-                 4. Consolidate the answer and ALWAYS include a SOURCE in markdown style for the relevant part ([<Text>](<source-url>))
-                 5. You MUST Format the answer in the OUTPUT FORMAT
-                 6. You MUST format each distinct SOURCE in markdown style ([<text>](<source-url>))
+                 3. Answer the users question based on the CONTEXT and CONVERSATION HISTORY in the same language as the user in maximum 50 words. 
+                 4. Consolidate the answer and ALWAYS include a SOURCE.
+                 5. You MUST format the answer in the OUTPUT FORMAT using markdown style for the SOURCE ([<relevant text>](<source-url>))
 
                 ###
 
                 OUTPUT FORMAT:"""
-                This is an example sentence and I am stating [key information](https://tcw.de/some-information-from-source) from a page. I have additional information from the same page'. 
-                I have [additional information](https://tcw.de/some-information-from-another-page) listed in another page.
+                This is an example sentence and I am stating from a page. I have additional information from the same page'. 
+                I have more information listed in another page.\nQUELLEN: [key information](https://tcw.de/some-information-from-source), [additional information](https://tcw.de/some-information-from-another-page)
                 """
 
                 ###
