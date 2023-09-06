@@ -18,8 +18,6 @@ class Chatbot:
         self.lead_chatbot = LeadChatbot()
         self.retrieval_chatbot = RetrievalChatbot()
         self.system_prompt = DefaultPrompts.system_prompt()
-        self.assistant_prompt = DefaultPrompts.assistant_prompt()
-        self.add_message("system", self.system_prompt)
         self.add_message("assistant", "Hallo, ich bin der TCW Bot. Wie kann ich Ihnen weiterhelfen?")
 
         self.functions = [
@@ -64,7 +62,6 @@ class Chatbot:
         json_data = {"model": model, "messages": messages}
         if functions is not None:
             json_data.update({"functions": functions})
-            #json_data.update({"function_call": {"name": "website_chat"}})
         try:
             return requests.post(
                 "https://api.openai.com/v1/chat/completions",
@@ -108,7 +105,6 @@ class Chatbot:
         """This function makes a ChatCompletion API call with the option of adding functions"""
 
         messages_body = [{"role": "system", "content": self.system_prompt},
-                        # {"role": "assistant", "content": self.assistant_prompt},
                          {"role": "user", "content": query}]
         functions = self.functions
         response = self.chat_completion_request(messages_body, functions)
@@ -118,7 +114,7 @@ class Chatbot:
             return self.call_chatbot_function(messages_body, full_message)
         else:
             logger.info(f"Function not required, responding to user")
-            return response.json()
+            return response.json()["choices"][0]["message"]["content"]
 
     def add_message(self, role, content):
         message = f"{role}: {content}"
