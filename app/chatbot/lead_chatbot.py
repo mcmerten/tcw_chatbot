@@ -11,15 +11,13 @@ class LeadChatbot:
         openai.api_key = settings.OPENAI_API_KEY
 
     def get_answer(self, user_message):
-        system_prompt = LeadPrompts.system_prompt()
-        assistant_prompt = LeadPrompts.assistant_prompt(self.chat_history)
+        system_prompt = LeadPrompts.system_prompt(self.chat_history)
         try:
             response = openai.ChatCompletion.create(
                 # TODO: add config variable for model
                 model="gpt-4",
                 messages=[
                     {"role": "system", "content": system_prompt},
-                    {"role": "assistant", "content": assistant_prompt},
                     {"role": "user", "content": user_message},
                 ]
             )
