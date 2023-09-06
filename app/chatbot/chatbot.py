@@ -113,8 +113,8 @@ class Chatbot:
             logger.info(f"Function generation requested")
             return self.call_chatbot_function(messages_body, full_message)
         else:
-            logger.info(f"Function not required, responding to user")
-            return response.json()["choices"][0]["message"]["content"]
+            logger.info(f"Function not required, calling retrieval chatbot as fallback option")
+            return self.retrieval_chatbot.chat(query, self.conversation_history)
 
     def add_message(self, role, content):
         message = f"{role}: {content}"

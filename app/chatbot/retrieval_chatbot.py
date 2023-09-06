@@ -36,7 +36,7 @@ class RetrievalChatbot:
                 ]
             )
             answer = response['choices'][0]['message']['content']
-            print(f"consolidated query: {answer}")
+            logger.info(f"Contextualized Query: {answer}")
             return answer
 
     def query_vector(self, query):
