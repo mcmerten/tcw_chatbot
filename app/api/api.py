@@ -55,16 +55,6 @@ class Papercups:
 
         requests.post(f"{settings.BASE_URL}/api/v1/messages", headers=headers, json={'message': result})
 
-    def fetch_conversation(self, conversation_id):
-        """
-        Fetch a conversation from Papercups.
-        """
-        if not self.token:
-            raise HTTPException(status_code=400, detail="Invalid token!")
-
-        headers = {'Authorization': f'Bearer {self.token}'}
-        requests.get(f"{settings.BASE_URL}/api/v1/conversations/{conversation_id}", headers=headers)
-
 
 papercups = Papercups(settings.PAPERCUPS_API_KEY)
 app = FastAPI()
@@ -90,9 +80,10 @@ async def root():
     return FileResponse(f'{app_path}/static/index.html')
 
 
+# TODO: add listener for choosing which chatbot to use
 @app.post("/webhooks/message-created")
 async def webhook(item: Item):
-    """
+    """c
     Process incoming webhook events.
     """
     if item.event == "webhook:verify":

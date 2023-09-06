@@ -80,7 +80,7 @@ def create_response(conversation):
     response = openai.ChatCompletion.create(
         model="gpt-4",
         messages=[
-            {"role": "system", "content": assistant_prompt},
+            {"role": "assistant", "content": assistant_prompt},
             {"role": "user", "content": conversation["conversation_str"]},
         ]
     )

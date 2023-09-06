@@ -17,15 +17,15 @@ class Chatbot:
         self.conversation_history = []
         self.lead_chatbot = LeadChatbot()
         self.retrieval_chatbot = RetrievalChatbot()
-        self.assistant_prompt = "Hallo, wie kann ich Ihnen weiterhelfen?"
-        self.system_prompt=DefaultPrompts.system_prompt()
+        self.system_prompt = DefaultPrompts.system_prompt()
+        self.assistant_prompt = DefaultPrompts.assistant_prompt()
         self.add_message("system", self.system_prompt)
-        self.add_message("assistant", self.assistant_prompt)
+        self.add_message("assistant", "Hallo, ich bin der TCW Bot. Wie kann ich Ihnen weiterhelfen?")
 
         self.functions = [
             {
                 "name": "lead_qualification",
-                "description":  """Use this function to qualify leads and extract lead information.""",
+                "description":  """Collect data about the user to qualify them as a lead.""",
                 "parameters": {
                     "type": "object",
                     "properties": {
@@ -40,16 +40,17 @@ class Chatbot:
             },
             {
                 "name": "website_chat",
-                "description": "Use this function to enable the user to chat with the website. You must use this function to answer the user's questions.",
+                "description": "Provide information about the TCW website and it's contents.",
                 "parameters": {
                     "type": "object",
                     "properties": {
                         "query": {
                             "type": "string",
-                            "description": "User query to the assistant",
+                            "description": "User query to the assistant asking about TCW website",
                         }
                     },
                     "required": ["query"],
+                    "optional": ["chat_history"]
                 },
             }
         ]
@@ -64,7 +65,6 @@ class Chatbot:
         if functions is not None:
             json_data.update({"functions": functions})
             #json_data.update({"function_call": {"name": "website_chat"}})
-            #print(json_data)
         try:
             return requests.post(
                 "https://api.openai.com/v1/chat/completions",
@@ -108,11 +108,10 @@ class Chatbot:
         """This function makes a ChatCompletion API call with the option of adding functions"""
 
         messages_body = [{"role": "system", "content": self.system_prompt},
-                         {"role": "assistant", "content": self.assistant_prompt},
+                        # {"role": "assistant", "content": self.assistant_prompt},
                          {"role": "user", "content": query}]
         functions = self.functions
         response = self.chat_completion_request(messages_body, functions)
-        #print(response.json())
         full_message = response.json()["choices"][0]
         if full_message["finish_reason"] == "function_call":
             logger.info(f"Function generation requested")

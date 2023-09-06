@@ -1,6 +1,8 @@
 # TCW Chatbot
 
-TCW Chatbot is a solution developed for the master's thesis *"Advances in Consulting Service Delivery: Developing a Large Language Model-Based Chatbot for Automated Proposal Generation"*. This chatbot leverages large language models (LLMs) to generate proposals automatically based on chat history.
+TCW Chatbot is a solution developed for the master's thesis *"Advances in Consulting Service Delivery: Developing an In-Context Retrieval Augmented Chatbot for Lead Generation"*. 
+This chatbot leverages large language models (LLMs) and Dense Retrieval (DR) methods to provide automated question answering and lead qualifiifacation for websites in the consulting service domain.
+
 
 ## How It Works
 A user interacts with a chat widget on a consulting firm's website, discusses their needs and pain points. The chatbot collects, analyzes these interactions, and generates a structured proposal.
@@ -31,11 +33,14 @@ The project leverages the following technologies:
 │   ├── api
 │   │   ├── __init__.py
 │   │   └── api.py
+│   ├── benchmark
+│   │   ├── eval.py
+│   │   └── script.py
 │   ├── chatbot
 │   │   ├── __init__.py
-│   │   ├── prompts.py
 │   │   ├── chatbot.py
 │   │   ├── lead_chatbot.py
+│   │   ├── prompts.py
 │   │   └── retrieval_chatbot.py
 │   ├── core
 │   │   └── logger.py

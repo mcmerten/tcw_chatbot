@@ -56,6 +56,8 @@ def html_preprocessing(html_list):
     return html_list
 
 
+# TODO: Filter websites and elements with no relevant information
+
 def html_to_text(html_list):
     """
     Convert HTML to Text
@@ -87,11 +89,13 @@ def group_and_concat_elements(element_list):
     grouped_elements = {}
     for element in element_list:
         metadata_tuple = tuple(element['metadata'].items())
-        text_with_type = f"<{element['type']}>{element['text']}</{element['type']}>"
+        # Decide if additional markdown helps retrieval and processing or hinders it
+        #text_with_type = f"<{element['type']}>{element['text']}</{element['type']}>"
+        raw_text = f"{element['text']} "
         if metadata_tuple in grouped_elements:
-            grouped_elements[metadata_tuple] += text_with_type
+            grouped_elements[metadata_tuple] += raw_text
         else:
-            grouped_elements[metadata_tuple] = text_with_type
+            grouped_elements[metadata_tuple] = raw_text
     return grouped_elements
 
 
@@ -127,7 +131,7 @@ def create_vector_db(documents, index_name=settings.PINECONE_INDEX_NAME, vector_
     logger.info("Create vector database")
     pinecone.init(environment=settings.PINECONE_ENVIRONMENT, api_key=settings.PINECONE_API_KEY)
     embeddings = OpenAIEmbeddings()
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=512, chunk_overlap=0)
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=150)
 
     if index_name not in pinecone.list_indexes():
         pinecone.create_index(
@@ -164,10 +168,10 @@ def main():
     processed_html_files = html_preprocessing(html_files)
     text_files = html_to_text(processed_html_files)
     grouped_elements = group_and_concat_elements(text_files)
-    cleaned_grouped_elements = clean_grouped_elements(grouped_elements)
-    doc_list = create_doc_list(cleaned_grouped_elements)
+    #cleaned_grouped_elements = clean_grouped_elements(grouped_elements)
+    doc_list = create_doc_list(grouped_elements)
     # user needs to confirm upload to Pinecone via console
-    if input("Upload documents to Pinecone? (y/n)") == "y":
+    if input(f"Upload {len(doc_list)} documents to Pinecone? (y/n)") == "y":
         create_vector_db(doc_list)
     else:
         logger.info("Documents not uploaded to Pinecone")
