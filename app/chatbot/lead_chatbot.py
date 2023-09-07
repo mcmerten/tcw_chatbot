@@ -29,10 +29,12 @@ class LeadChatbot:
         if __name__ == "__main__":
             self.chat_history.append((f"User: {user_message}\n", f"Assistant: {answer}\n"))
 
-        if answer == "aborted":
-            answer = "Kein Problem. Was möchten Sie über das TCW wissen?"
+        if answer == "-1":
+            logger.info("Lead generation process aborted.")
+            answer = "Was möchten Sie über das TCW wissen?"
             return answer, "Aborted"
-        elif answer == "success":
+        elif answer == "200":
+            logger.info("Lead generation process completed successfully.")
             answer = "Vielen Dank für Ihre Informationen. Was möchten Sie über das TCW erfahren?"
             return answer, "Success"
         else:
@@ -41,8 +43,8 @@ class LeadChatbot:
     def chat(self, query, history=None):
         if history:
             self.chat_history = history
-        final_answer, lead_generation_aborted = self.get_answer(query)
-        return final_answer, lead_generation_aborted
+        final_answer, lead_generation_status = self.get_answer(query)
+        return final_answer, lead_generation_status
 
 
 if __name__ == "__main__":

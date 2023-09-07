@@ -39,7 +39,7 @@ class Chatbot:
             },
             {
                 "name": "lead_qualification",
-                "description":  "Collect data about the user to qualify them as a lead. You must use this function for the first reply.",
+                "description":  """Collect data about the user to qualify them as a lead. You must use this function for the first reply.""",
                 "parameters": {
                     "type": "object",
                     "properties": {
@@ -95,27 +95,16 @@ class Chatbot:
 
         self.add_message("assistant", str(results))
         return str(results)
-        # Necessary?
-        #try:
-        #    response = self.chat_completion_request(messages)
-        #    return response.json()
-        #except Exception as e:
-        #    print(type(e))
-        #    raise Exception("Function chat request failed")
 
     def chat_completion_with_function_execution(self, query):
         """This function makes a ChatCompletion API call with the option of adding functions"""
-
-
         messages_body = [{"role": "system", "content": self.system_prompt},
                          {"role": "user", "content": query}]
         if self.lead_generation_status == "Success":
             # TODO: Implement success logic with summary prompt to feed into retrieval chatbot
-            logger.info("Lead generation process completed successfully.")
-            functions = self.functions[0]
+            functions = [self.functions[0]]
         elif self.lead_generation_status == "Aborted":
-            logger.info("Lead generation process aborted.")
-            functions = self.functions[0]
+            functions = [self.functions[0]]
         else:
             functions = self.functions
 
@@ -150,7 +139,7 @@ def main():
         if usr_input == "quit":
             break
         resp = bot.chat(usr_input)
-        print(resp)
+        print(f"Bot: {resp}")
 
 
 if __name__ == "__main__":
