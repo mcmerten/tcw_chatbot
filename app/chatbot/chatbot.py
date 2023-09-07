@@ -89,8 +89,7 @@ class Chatbot:
         elif function_name == "lead_qualification":
             logger.info("Calling lead_qualification() function")
             results, lead_generation_status = self.lead_chatbot.chat(parsed_output["query"], self.conversation_history)
-            print(f"results: {results}\nlead_generation_aborted: {lead_generation_status}")
-            self.lead_generation_aborted = lead_generation_status
+            self.lead_generation_status = lead_generation_status
         else:
             raise Exception("Function does not exist and cannot be called")
 
@@ -112,8 +111,10 @@ class Chatbot:
                          {"role": "user", "content": query}]
         if self.lead_generation_status == "Success":
             # TODO: Implement success logic with summary prompt to feed into retrieval chatbot
+            logger.info("Lead generation process completed successfully.")
             functions = self.functions[0]
         elif self.lead_generation_status == "Aborted":
+            logger.info("Lead generation process aborted.")
             functions = self.functions[0]
         else:
             functions = self.functions
