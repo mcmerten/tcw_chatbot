@@ -28,13 +28,21 @@ class LeadChatbot:
         answer = response['choices'][0]['message']['content']
         if __name__ == "__main__":
             self.chat_history.append((f"User: {user_message}\n", f"Assistant: {answer}\n"))
-        return answer
+
+        if answer == "aborted":
+            answer = "Kein Problem. Was möchten Sie über das TCW wissen?"
+            return answer, "Aborted"
+        elif answer == "success":
+            answer = "Vielen Dank für Ihre Informationen. Was möchten Sie über das TCW erfahren?"
+            return answer, "Success"
+        else:
+            return answer, "In Progress"
 
     def chat(self, query, history=None):
         if history:
             self.chat_history = history
-        final_answer = self.get_answer(query)
-        return final_answer
+        final_answer, lead_generation_aborted = self.get_answer(query)
+        return final_answer, lead_generation_aborted
 
 
 if __name__ == "__main__":
@@ -44,5 +52,5 @@ if __name__ == "__main__":
         user_input = input("User: ")
         if user_input.lower() in ["quit", "exit"]:
             break
-        response = bot.chat(user_input)
+        response, lead_generation_aborted = bot.chat(user_input)
         print("Bot: ", response)

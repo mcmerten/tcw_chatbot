@@ -19,23 +19,9 @@ class Chatbot:
         self.retrieval_chatbot = RetrievalChatbot()
         self.system_prompt = DefaultPrompts.system_prompt()
         self.add_message("assistant", "Hallo, ich bin der TCW Bot. Wie kann ich Ihnen weiterhelfen?")
+        self.lead_generation_status = "In Progress"
 
         self.functions = [
-            {
-                "name": "lead_qualification",
-                "description":  "Collect data about the user to qualify them as a lead. You must use this function for the first reply.",
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "query": {
-                            "type": "string",
-                            "description": "User query to the assistant",
-                        }
-                    },
-                    "required": ["query"],
-                    "optional": ["chat_history"]
-                },
-            },
             {
                 "name": "website_chat",
                 "description": "Provide information about the TCW website and it's contents.",
@@ -45,6 +31,21 @@ class Chatbot:
                         "query": {
                             "type": "string",
                             "description": "User query to the assistant asking about TCW website",
+                        }
+                    },
+                    "required": ["query"],
+                    "optional": ["chat_history"]
+                },
+            },
+            {
+                "name": "lead_qualification",
+                "description":  "Collect data about the user to qualify them as a lead. You must use this function for the first reply.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "query": {
+                            "type": "string",
+                            "description": "User query to the assistant",
                         }
                     },
                     "required": ["query"],
@@ -87,7 +88,9 @@ class Chatbot:
             results = self.retrieval_chatbot.chat(parsed_output["query"], self.conversation_history)
         elif function_name == "lead_qualification":
             logger.info("Calling lead_qualification() function")
-            results = self.lead_chatbot.chat(parsed_output["query"], self.conversation_history)
+            results, lead_generation_status = self.lead_chatbot.chat(parsed_output["query"], self.conversation_history)
+            print(f"results: {results}\nlead_generation_aborted: {lead_generation_status}")
+            self.lead_generation_aborted = lead_generation_status
         else:
             raise Exception("Function does not exist and cannot be called")
 
@@ -104,9 +107,17 @@ class Chatbot:
     def chat_completion_with_function_execution(self, query):
         """This function makes a ChatCompletion API call with the option of adding functions"""
 
+
         messages_body = [{"role": "system", "content": self.system_prompt},
                          {"role": "user", "content": query}]
-        functions = self.functions
+        if self.lead_generation_status == "Success":
+            # TODO: Implement success logic with summary prompt to feed into retrieval chatbot
+            functions = self.functions[0]
+        elif self.lead_generation_status == "Aborted":
+            functions = self.functions[0]
+        else:
+            functions = self.functions
+
         response = self.chat_completion_request(messages_body, functions)
         full_message = response.json()["choices"][0]
         if full_message["finish_reason"] == "function_call":
