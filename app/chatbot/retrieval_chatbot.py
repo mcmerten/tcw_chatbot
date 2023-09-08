@@ -81,8 +81,8 @@ class RetrievalChatbot:
         content = "\n".join(formatted_list)
         return content
 
-    def get_answer(self, query, retrieved_content):
-        system_prompt = RetrievalPrompts.cot_prompt(chat_history=self.get_chat_history(), context=retrieved_content)
+    def get_answer(self, query, retrieved_content, lead_data=None):
+        system_prompt = RetrievalPrompts.cot_prompt(chat_history=self.get_chat_history(), context=retrieved_content, user_data=lead_data)
         response = openai.ChatCompletion.create(
             model="gpt-4",
             messages=[
@@ -99,13 +99,13 @@ class RetrievalChatbot:
     def get_chat_history(self):
         return self.chat_history
 
-    def chat(self, query, history=None):
+    def chat(self, query, history=None, user_data=None):
         if history:
             self.chat_history = history
         summarized_query = self.consolidate_query(query, self.chat_history)
         query_results = self.query_vector(summarized_query)
         content = self.get_content(query_results)
-        final_answer = self.get_answer(query, content)
+        final_answer = self.get_answer(query, content, user_data)
         return final_answer
 
 

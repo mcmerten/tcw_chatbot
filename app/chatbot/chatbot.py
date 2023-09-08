@@ -15,44 +15,28 @@ openai.api_key = settings.OPENAI_API_KEY
 class Chatbot:
     def __init__(self):
         self.conversation_history = []
+        self._lead_generation_status = "In Progress"
+        self.lead_data = ""
         self.lead_chatbot = LeadChatbot()
         self.retrieval_chatbot = RetrievalChatbot()
         self.system_prompt = DefaultPrompts.system_prompt()
+        self.functions = DefaultPrompts.system_functions()
         self.add_message("assistant", "Hallo, ich bin der TCW Bot. Wie kann ich Ihnen weiterhelfen?")
-        self.lead_generation_status = "In Progress"
 
-        self.functions = [
-            {
-                "name": "website_chat",
-                "description": "Provide information about the TCW website and it's contents.",
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "query": {
-                            "type": "string",
-                            "description": "User query to the assistant asking about TCW website",
-                        }
-                    },
-                    "required": ["query"],
-                    "optional": ["chat_history"]
-                },
-            },
-            {
-                "name": "lead_qualification",
-                "description":  """Collect data about the user to qualify them as a lead. You must use this function for the first reply.""",
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "query": {
-                            "type": "string",
-                            "description": "User query to the assistant",
-                        }
-                    },
-                    "required": ["query"],
-                    "optional": ["chat_history"]
-                },
-            }
-        ]
+    @property
+    def lead_generation_status(self):
+        return self._lead_generation_status
+
+    @lead_generation_status.setter
+    def lead_generation_status(self, new_status):
+        if new_status == "In Progress":
+            return
+        self._lead_generation_status = new_status
+        if new_status == "Success":
+            self.summarize_conversation()
+        logger.info("lead_qualification() function disabled")
+        self.functions = [self.functions[0]]
+
 
     @retry(wait=wait_random_exponential(min=1, max=40), stop=stop_after_attempt(3))
     def chat_completion_request(self, messages, functions=None, model="gpt-4-0613"):
@@ -85,10 +69,10 @@ class Chatbot:
 
         if function_name == "website_chat":
             logger.info("Calling website_chat() function")
-            results = self.retrieval_chatbot.chat(parsed_output["query"], self.conversation_history)
+            results = self.retrieval_chatbot.chat(parsed_output["query"], self.get_chat_history(), self.get_lead_data())
         elif function_name == "lead_qualification":
             logger.info("Calling lead_qualification() function")
-            results, lead_generation_status = self.lead_chatbot.chat(parsed_output["query"], self.conversation_history)
+            results, lead_generation_status = self.lead_chatbot.chat(parsed_output["query"], self.get_chat_history())
             self.lead_generation_status = lead_generation_status
         else:
             raise Exception("Function does not exist and cannot be called")
@@ -100,14 +84,7 @@ class Chatbot:
         """This function makes a ChatCompletion API call with the option of adding functions"""
         messages_body = [{"role": "system", "content": self.system_prompt},
                          {"role": "user", "content": query}]
-        if self.lead_generation_status == "Success":
-            # TODO: Implement success logic with summary prompt to feed into retrieval chatbot
-            functions = [self.functions[0]]
-        elif self.lead_generation_status == "Aborted":
-            functions = [self.functions[0]]
-        else:
-            functions = self.functions
-
+        functions = self.functions
         response = self.chat_completion_request(messages_body, functions)
         full_message = response.json()["choices"][0]
         if full_message["finish_reason"] == "function_call":
@@ -115,15 +92,33 @@ class Chatbot:
             return self.call_chatbot_function(messages_body, full_message)
         else:
             logger.info(f"Function not required, calling retrieval chatbot as fallback option")
-            return self.retrieval_chatbot.chat(query, self.conversation_history)
+            return self.retrieval_chatbot.chat(query, self.get_chat_history())
+
+    def summarize_conversation(self):
+        """Summarize conversation history for retrieval chatbot"""
+        completion = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo-16k",
+            messages=[
+                {"role": "system", "content": f"CONVERSATION HISTORY: '''{self.get_chat_history()}'''"},
+                {"role": "user", "content": "Extract only information stated by the user information from the conversation history."}
+            ],
+            functions=[{"name": "extract_lead_data", "parameters": DefaultPrompts.summary_schema()}],
+            function_call={"name": "extract_lead_data"},
+            temperature=0,
+        )
+        result = json.loads(completion.choices[0].message.function_call.arguments)
+        self.lead_data = result
+        logger.info(f"Lead data extracted: {result}")
 
     def add_message(self, role, content):
         message = f"{role}: {content}"
         self.conversation_history.append(message)
 
-    def display_conversation(self):
-        for message in self.conversation_history:
-            print(f"{message}\n")
+    def get_chat_history(self):
+        return self.conversation_history
+
+    def get_lead_data(self):
+        return self.lead_data
 
     def chat(self, query):
         self.add_message("user", query)

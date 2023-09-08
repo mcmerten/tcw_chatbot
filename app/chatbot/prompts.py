@@ -29,19 +29,21 @@ class RetrievalPrompts:
         return prompt
 
     @staticmethod
-    def cot_prompt(chat_history, context):
+    def cot_prompt(chat_history, context, user_data):
         prompt = f'''
                 - Your are an intelligent chatbot that ONLY ANSWERS questions about the TCW website and it's contents in a conscise manner with maximum 250 characters.
                 - If you do not know the answer reply with the TCW contact page [TCW Kontaktseite](https://www.tcw.de/unternehmen/sonstiges/kontakt-170)
                 - Always reply in the language of the user. The default language is German.
                 - The answer MUST BE shorter than 250 characters
                 - ALWAYS include the sources of your answers 
+                - If available, use the USER DATA for a more personalized answer
 
                 Take a step-by-step approach in your response
                  1. Remember the CONVERSATION HISTORY
                  2. Read and understand the CONTEXT consisting of SOURCE and CONTENT. The SOURCE is the URL of the page and the CONTENT is the text from the page.
                  3. Answer the users question based on the CONTEXT and CONVERSATION HISTORY in the same language as the user in maximum 50 words. 
-                 4. Consolidate the answer and ALWAYS include a SOURCE at the end of the answer if you use information from the CONTEXT.
+                 4. Consolidate the answer and ALWAYS include a SOURCE at the END of an answer .
+                 5. Only include a source if you used information from the CONTEXT.
                  5. You MUST format the answer in the OUTPUT FORMAT and you MUST use markdown style for the SOURCE: "* [<relevant text>](<source-url)*".
                  
                 ###
@@ -51,6 +53,10 @@ class RetrievalPrompts:
                 """
 
                 ###
+                
+                USER DATA: """
+                {user_data}
+                """
 
                 CONVERSATION HISTORY: """
                 {chat_history}
@@ -106,7 +112,6 @@ class LeadPrompts:
         return prompt
 
 
-
 class DefaultPrompts:
     @staticmethod
     def system_prompt():
@@ -119,4 +124,91 @@ class DefaultPrompts:
                     - Always reply in the language of the user. The default language is German.    
                 """
         return prompt
+
+    @staticmethod
+    def system_functions():
+        functions = [
+            {
+                "name": "website_chat",
+                "description": "Provide information about the TCW website and it's contents.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "query": {
+                            "type": "string",
+                            "description": "User query to the assistant asking about TCW website",
+                        }
+                    },
+                    "required": ["query"],
+                    "optional": ["chat_history"]
+                },
+            },
+            {
+                "name": "lead_qualification",
+                "description": """Collect data about the user to qualify them as a lead. You must use this function for the first reply.""",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "query": {
+                            "type": "string",
+                            "description": "User query to the assistant",
+                        }
+                    },
+                    "required": ["query"],
+                    "optional": ["chat_history"]
+                },
+            }
+        ]
+        return functions
+
+    @staticmethod
+    def summary_schema():
+        schema = {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "The name of the user"
+                },
+                "email": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "The email of the user"
+                },
+                "phone": {
+                    "type": "string",
+                    "description": "The phone number of the user"
+                },
+                "company": {
+                    "type": "string",
+                    "description": "The company the user works for"
+                },
+                "company_size": {
+                    "type": "string",
+                    "description": "The size of the company the user works for"
+                },
+                "role": {
+                    "type": "string",
+                    "description": "The occupation of the user"
+                },
+                "interest": {
+                    "type": "string",
+                    "description": "What kind of service the user is interested in"
+                },
+                "pain": {
+                    "type": "string",
+                    "description": "What pain points the user is experiencing"
+                },
+                "budget": {
+                    "type": "number",
+                    "description": "The budget the user has for the service"
+                },
+                "additional_info": {
+                    "type": "string",
+                    "description": "Any additional information the user has provided"
+                }
+            },
+            #"required": ["name", "company", "industry" "role", "interest", "pain", "additional_info"]
+        }
+        return schema
 
