@@ -108,7 +108,7 @@ class Chatbot:
         )
         result = json.loads(completion.choices[0].message.function_call.arguments)
         self.lead_data = result
-        logger.info(f"Lead data extracted: {result}")
+        logger.info(f"Lead data extracted: {self.lead_data}")
 
     def add_message(self, role, content):
         message = f"{role}: {content}"

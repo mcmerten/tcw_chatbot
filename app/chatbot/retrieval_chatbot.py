@@ -82,7 +82,7 @@ class RetrievalChatbot:
         return content
 
     def get_answer(self, query, retrieved_content, lead_data=None):
-        system_prompt = RetrievalPrompts.cot_prompt(chat_history=self.get_chat_history(), context=retrieved_content, user_data=lead_data)
+        system_prompt = RetrievalPrompts.answer_prompt(chat_history=self.get_chat_history(), context=retrieved_content, user_data=lead_data)
         response = openai.ChatCompletion.create(
             model="gpt-4",
             messages=[

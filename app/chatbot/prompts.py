@@ -29,7 +29,7 @@ class RetrievalPrompts:
         return prompt
 
     @staticmethod
-    def cot_prompt(chat_history, context, user_data):
+    def answer_prompt(chat_history, context, user_data):
         prompt = f'''
                 - Your are an intelligent chatbot that ONLY ANSWERS questions about the TCW website and it's contents in a conscise manner with maximum 250 characters.
                 - If you do not know the answer reply with the TCW contact page [TCW Kontaktseite](https://www.tcw.de/unternehmen/sonstiges/kontakt-170)
@@ -44,7 +44,7 @@ class RetrievalPrompts:
                  3. Answer the users question based on the CONTEXT and CONVERSATION HISTORY in the same language as the user in maximum 50 words. 
                  4. Consolidate the answer and ALWAYS include a SOURCE at the END of an answer .
                  5. Only include a source if you used information from the CONTEXT.
-                 5. You MUST format the answer in the OUTPUT FORMAT and you MUST use markdown style for the SOURCE: "* [<relevant text>](<source-url)*".
+                 6. You MUST format the answer in the OUTPUT FORMAT and you MUST use markdown style for the SOURCE: "* [<relevant text>](<source-url)*".
                  
                 ###
 
