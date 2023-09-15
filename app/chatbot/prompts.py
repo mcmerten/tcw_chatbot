@@ -210,7 +210,7 @@ class DefaultPrompts:
                     "description": "Any additional information the user has provided"
                 }
             },
-            #"required": ["name", "company", "industry" "role", "interest", "pain", "additional_info"]
+            "required": ["name", "email", "phone", "company", "company_size", "role", "interest", "pain", "budget"],
         }
         return schema
 

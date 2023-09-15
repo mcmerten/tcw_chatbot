@@ -22,6 +22,7 @@ class Summary(Base):
     phone = Column(String(128))
     company = Column(String(128))
     company_size = Column(String(128))
+    industry = Column(String(128))
     role = Column(String(128))
     interest = Column(String(1028))
     pain = Column(String(1028))
