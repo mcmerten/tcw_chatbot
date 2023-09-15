@@ -4,13 +4,15 @@ import os
 
 load_dotenv()
 
+# Define Settings class to store all the constants and secrets for the app
+
 class Settings(BaseSettings):
     # Secrets
     PAPERCUPS_API_KEY = os.getenv("PAPERCUPS_API_KEY")
     OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 
     # Constants
-    GPT_MODEL = "gpt-3.5-turbo-0613"
+    GPT_MODEL = "gpt-4"
     EMBEDDING_MODEL = "text-embedding-ada-002"
     BASE_URL = os.getenv("PAPERCUPS_BASE_URL", "https://app.papercups.io")
 

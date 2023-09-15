@@ -16,17 +16,19 @@ pinecone.init(
     environment=settings.PINECONE_ENVIRONMENT
 )
 
+# Define Chatbot class (Knowledge Retrieval Module)
 class RetrievalChatbot:
     def __init__(self, history=[]):
         self.chat_history = history
         self.embed_model = "text-embedding-ada-002"
         self.index = pinecone.Index(settings.PINECONE_INDEX_NAME)
 
+    # Consolidate query and history into new query for retrieval
     def consolidate_query(self, query, history):
-        """Consolidate query and history into new query for retrieval"""
         if len(history) == 0:
             return query
         else:
+            # Get last two message pairs to consider for context
             recent_history = history[-2:]
             system_prompt = RetrievalPrompts.summary_prompt(chat_history=recent_history, user_question=query)
             response = openai.ChatCompletion.create(
@@ -40,26 +42,27 @@ class RetrievalChatbot:
             return answer
 
     def query_vector(self, query):
-        """Get embedding for query"""
+        # Get embedding for user query
         res = openai.Embedding.create(
             input=[query],
             engine=self.embed_model
         )
         embedded_question = res['data'][0]['embedding']
 
-        # Get relevant contexts from Pinecone
+        # Get relevant document chunks from Pinecone
         query_results = self.index.query(
             embedded_question,
             top_k=5,
             include_metadata=True
         )
+        print(query_results)
         return query_results
 
+    # Extract content from results object
     def get_content(self, query_results):
-        """Extract content from results"""
         grouped_items = {}
 
-        # Loop through the list of dictionaries
+        # Loop through the list of dictionaries with metadata and text
         for item in query_results['matches']:
             source_url = item['metadata']['source-url']
             if source_url in grouped_items:
@@ -67,6 +70,7 @@ class RetrievalChatbot:
             else:
                 grouped_items[source_url] = [item]
 
+        # Format the content into a list of strings to be easily readable by LLM
         formatted_list = []
         for source_url, items in grouped_items.items():
             concatenated_texts = ""
@@ -78,9 +82,11 @@ class RetrievalChatbot:
             formatted_entry = f"SOURCE: {source_url}\nCONTENT:\n{concatenated_texts}"
             formatted_list.append(formatted_entry)
 
+        # Join the list of strings into a single string to be used as input to LLM
         content = "\n".join(formatted_list)
         return content
 
+    # Get answer from KRM (called by DMM)
     def get_answer(self, query, retrieved_content, lead_data=None):
         system_prompt = RetrievalPrompts.answer_prompt(chat_history=self.get_chat_history(), context=retrieved_content, user_data=lead_data)
         response = openai.ChatCompletion.create(
@@ -109,6 +115,7 @@ class RetrievalChatbot:
         return final_answer
 
 
+# Main function to test chatbot locally in terminal
 if __name__ == "__main__":
     bot = RetrievalChatbot()
     while True:

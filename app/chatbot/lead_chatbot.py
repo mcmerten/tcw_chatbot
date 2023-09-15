@@ -5,11 +5,12 @@ from app.core.logger import get_logger
 
 logger = get_logger(__name__)
 
+# Define Chatbot class (Lead Generation Module)
 class LeadChatbot:
     def __init__(self, history=None):
         self.chat_history = history or []
         openai.api_key = settings.OPENAI_API_KEY
-
+    # Define ChatCompletion API call
     def get_answer(self, user_message):
         system_prompt = LeadPrompts.system_prompt(self.chat_history)
         try:
@@ -29,6 +30,7 @@ class LeadChatbot:
         if __name__ == "__main__":
             self.chat_history.append((f"User: {user_message}\n", f"Assistant: {answer}\n"))
 
+        # Logic to handle completion / abortion of lead generation process
         if answer == "-1":
             logger.info("Lead generation process aborted.")
             answer = "Was möchten Sie über das TCW wissen?"
@@ -46,7 +48,7 @@ class LeadChatbot:
         final_answer, lead_generation_status = self.get_answer(query)
         return final_answer, lead_generation_status
 
-
+# Define main function to test chatbot
 if __name__ == "__main__":
     bot = LeadChatbot()
 

@@ -12,7 +12,10 @@ logger = logger.get_logger(__name__)
 
 openai.api_key = settings.OPENAI_API_KEY
 
+# Define Chatbot class (Decision-Making Module)
 class Chatbot:
+
+    # Initialize chatbot with prompts and sub-chatbots
     def __init__(self):
         self.conversation_history = []
         self._lead_generation_status = "In Progress"
@@ -23,6 +26,7 @@ class Chatbot:
         self.functions = DefaultPrompts.system_functions()
         self.add_message("assistant", "Hallo, ich bin der TCW Bot. Wie kann ich Ihnen weiterhelfen?")
 
+    # Define getter and setter for lead_generation_status
     @property
     def lead_generation_status(self):
         return self._lead_generation_status
@@ -37,7 +41,7 @@ class Chatbot:
         logger.info("lead_qualification() function disabled")
         self.functions = [self.functions[0]]
 
-
+    # Define ChatCompletion API call
     @retry(wait=wait_random_exponential(min=1, max=40), stop=stop_after_attempt(3))
     def chat_completion_request(self, messages, functions=None, model="gpt-4-0613"):
         headers = {
@@ -57,16 +61,16 @@ class Chatbot:
             logger.error(f"Unable to generate ChatCompletion response: {e}")
             return None
 
+    # Define function call when model requests a function
     def call_chatbot_function(self, messages, full_message):
-        """Function calling function which executes function calls when the model believes it is necessary.
-        Currently extended by adding clauses to this if statement."""
+        # Identify function name and arguments
         function_name = full_message["message"]["function_call"]["name"]
         try:
             parsed_output = json.loads(full_message["message"]["function_call"]["arguments"])
         except Exception as e:
             logger.error(f"Error parsing arguments: {e}")
             return None
-
+        # Call lead chatbot or retrieval chatbot based on function name
         if function_name == "website_chat":
             logger.info("Calling website_chat() function")
             results = self.retrieval_chatbot.chat(parsed_output["query"], self.get_chat_history(), self.get_lead_data())
@@ -80,8 +84,8 @@ class Chatbot:
         self.add_message("assistant", str(results))
         return str(results)
 
+    # Function to call ChatCompletion API and execute function if required
     def chat_completion_with_function_execution(self, query):
-        """This function makes a ChatCompletion API call with the option of adding functions"""
         messages_body = [{"role": "system", "content": self.system_prompt},
                          {"role": "user", "content": query}]
         functions = self.functions
@@ -94,12 +98,12 @@ class Chatbot:
             logger.info(f"Function not required, calling retrieval chatbot as fallback option")
             return self.retrieval_chatbot.chat(query, self.get_chat_history())
 
+    # Function to summarize conversation history of LGM to extract lead data
     def summarize_conversation(self):
-        """Summarize conversation history for retrieval chatbot"""
         completion = openai.ChatCompletion.create(
             model="gpt-3.5-turbo-16k",
             messages=[
-                {"role": "system", "content": f"CONVERSATION HISTORY: '''{self.get_chat_history()}'''"},
+                {"role": "system", "content": f"CONVERSATION HISTORY: '{self.get_chat_history()}'"},
                 {"role": "user", "content": "Extract only information stated by the user information from the conversation history."}
             ],
             functions=[{"name": "extract_lead_data", "parameters": DefaultPrompts.summary_schema()}],
@@ -110,6 +114,7 @@ class Chatbot:
         self.lead_data = result
         logger.info(f"Lead data extracted: {self.lead_data}")
 
+    # Supporting functions to add and get chat history and lead data
     def add_message(self, role, content):
         message = f"{role}: {content}"
         self.conversation_history.append(message)
@@ -120,12 +125,13 @@ class Chatbot:
     def get_lead_data(self):
         return self.lead_data
 
+    # Initial function called by API module
     def chat(self, query):
         self.add_message("user", query)
         chat_response = self.chat_completion_with_function_execution(query)
         return chat_response
 
-
+# Main function to test chatbot locally in terminal
 def main():
     bot = Chatbot()
 

@@ -1,3 +1,4 @@
+# Import packages
 import urllib.parse
 import re
 import requests
@@ -23,7 +24,7 @@ URL_BLACKLIST = [
     "https://tcw.de/news",
 ]
 
-# S3 client
+# Initialize S3 client to store crawled pages
 session = boto3.session.Session()
 client = session.client(
     's3',
@@ -39,11 +40,13 @@ class HyperlinkParser(HTMLParser):
         super().__init__()
         self.hyperlinks = set()
 
+    # Extract hyperlinks from HTML tags
     def handle_starttag(self, tag, attrs):
         attrs = dict(attrs)
         if tag in ["a", "link"] and "href" in attrs:
             self.hyperlinks.add(attrs["href"])
 
+    # Parse the given URL to extract hyperlinks
     def parse(self, url):
         try:
             response = requests.get(url)
@@ -57,7 +60,7 @@ class HyperlinkParser(HTMLParser):
 
         return list(self.hyperlinks)
 
-
+# Function to get hyperlinks from a given URL
 def get_hyperlinks(url):
     try:
         with urllib.request.urlopen(url) as response:
@@ -72,7 +75,7 @@ def get_hyperlinks(url):
     parser.feed(html)
     return parser.hyperlinks
 
-
+# Function to get hyperlinks that belong to the same domain as the given URL
 def get_domain_hyperlinks(local_domain, url):
     clean_links = set()
     for link in get_hyperlinks(url):
@@ -90,11 +93,11 @@ def get_domain_hyperlinks(local_domain, url):
 
     return list(clean_links)
 
-
+# Check if a URL is in the blacklist
 def is_blacklisted(url):
     return any(blacklisted_url in url for blacklisted_url in URL_BLACKLIST)
 
-
+# Function to write scraped content to an AWS S3 bucket
 def write_to_s3(local_domain, filename, html_content, metadata):
     try:
         client.put_object(
@@ -107,13 +110,14 @@ def write_to_s3(local_domain, filename, html_content, metadata):
     except Exception as e:
         logging.error(e)
 
-
+# Crawler class for web scraping
 class Crawler:
     def __init__(self, start_url):
         self.local_domain = urlparse(start_url).netloc
         self.queue = deque([start_url])
         self.seen = {start_url}
 
+    # Main crawl function
     def crawl(self):
         while self.queue:
             url = self.queue.popleft()
