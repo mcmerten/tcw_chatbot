@@ -1,6 +1,6 @@
 """
-1. Activate the virtual environment via: % source venv/bin/activate
-2. Set the PYTHONPATH via: % export PYTHONPATH=$PYTHONPATH:/Users/merten/Development/tcw_chatbot/app
+(1.) Activate the virtual environment via: % source venv/bin/activate
+2. Set the PYTHONPATH via: % export PYTHONPATH=$PYTHONPATH:/<absolute path>/tcw_chatbot/app
 3. Run the script via: % streamlit run app/scripts/consultant_interface.py
 """
 

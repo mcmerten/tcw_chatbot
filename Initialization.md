@@ -1,18 +1,18 @@
 # Setup Guide
 
-## Prerequisites
-### Mandatory
+## 1. Prerequisites
+**Mandatory**
 - Python 3.10
 - requirements.txt `pip install -r requirements.txt`
 - .env with secrets
-### Optional: 
+**Optional:**
 - Docker
 
 It is recommended to use a virtual environment for the project.
 
 --- 
 
-## Running the chatbot locally
+## 2. Running the chatbot locally
 
 Each chatbot module (Decision-Making Module, Lead Generation Module, Knowledge Retrieval Module) can be run independently from the terminal.
 
@@ -22,6 +22,11 @@ Each chatbot module (Decision-Making Module, Lead Generation Module, Knowledge R
   - Option 2: Run via Docker `docker build -t chatbot . && docker run -it chatbot`
   - Option 3: Run via IDE (PyCharm, VSCode, etc.)
 
+---
+## 3. Deployment
+
+- The chatbot is currently deployed on Digital Ocean. The deployment is done via Docker.
+- The GitHub repository is connected to Digital Ocean. Any changes to the main branch will trigger a new deployment.
 ---
 ## Database Access
 
