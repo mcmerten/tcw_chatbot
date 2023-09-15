@@ -1,6 +1,6 @@
 # TCW Chatbot
 
-TCW Chatbot is a solution developed for the master's thesis *"Advances in Consulting Service Delivery: Developing an In-Context Retrieval Augmented Chatbot for Lead Generation"*. 
+TCW Chatbot is a solution developed for the master's thesis _"Developing an In-Context Retrieval Augmented Chatbot for Lead Generation and Question Answering"_. 
 This chatbot leverages large language models (LLMs) and Dense Retrieval (DR) methods to provide automated question answering and lead qualifiifacation for websites in the consulting service domain.
 
 
