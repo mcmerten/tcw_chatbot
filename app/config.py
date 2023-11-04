@@ -25,7 +25,7 @@ class Settings(BaseSettings):
 
     # Pinecone Vector Database
     PINECONE_API_KEY = os.getenv('PINECONE_API_KEY')
-    PINECONE_INDEX_NAME = "tcw-website-embeddings"
+    PINECONE_INDEX_NAME = "tcw-website-embeddings-index"
     PINECONE_ENVIRONMENT = "us-west1-gcp-free"
 
     # AWS S3 Bucket
